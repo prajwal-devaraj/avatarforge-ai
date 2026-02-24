@@ -68,3 +68,5 @@ AI-Avatar-Cartoon-Generator/
 ### Developed by
 
 **Prajwal Devaraj**
+
+pdevaraj001@gmail.com
