@@ -460,3 +460,42 @@
     .result-buttons { width: 100%; }
     .result-buttons > * { flex: 1; }
 }
+
+/* Step 4 — multi-style engine controls */
+.style-grid {
+    grid-template-columns: 1fr 1fr;
+}
+.style-grid .style-option {
+    min-height: 76px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 9px;
+}
+.style-grid .style-swatch { height: 46px; }
+.swatch-sketch { background: linear-gradient(135deg, #f1f1ef, #777b83); }
+.swatch-comic { background: linear-gradient(135deg, #ffdc5d 0 42%, #e74c65 42% 68%, #172138 68%); }
+.swatch-portrait { background: linear-gradient(135deg, #b77d70, #e7b9a9 45%, #66537d); }
+.swatch-gray { background: linear-gradient(135deg, #eeeeee, #8a8a8a 48%, #1d1d1f); }
+.swatch-edge { background: linear-gradient(135deg, #15ddc2, #4f74ff 48%, #fb4ea3); }
+
+.range-control {
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px;
+    padding: 14px 12px 10px;
+    background: rgba(255,255,255,.02);
+}
+.range-control input[type="range"] {
+    width: 100%;
+    accent-color: #7c64ff;
+    cursor: pointer;
+}
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    color: rgba(255,255,255,.34);
+    font-size: 9px;
+}
+
+@media (max-width: 1250px) {
+    .style-grid { grid-template-columns: 1fr; }
+}

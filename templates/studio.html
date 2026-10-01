@@ -55,32 +55,56 @@
                 <section class="control-section">
                     <div class="control-title-row">
                         <label>2. Style</label>
-                        <span>Engine v1</span>
+                        <span>Engine v2</span>
                     </div>
-                    <div class="style-picker" role="radiogroup" aria-label="Avatar style">
-                        <label class="style-option active">
+                    <div class="style-picker style-grid" role="radiogroup" aria-label="Avatar style">
+                        <label class="style-option active" data-style-label="Signature Cartoon">
                             <input type="radio" name="style" value="cartoon" checked>
                             <span class="style-swatch swatch-cartoon"></span>
-                            <span><strong>Signature Cartoon</strong><small>Available now</small></span>
+                            <span><strong>Signature Cartoon</strong><small>Smooth color + ink lines</small></span>
                         </label>
-                        <button class="style-option locked" type="button" disabled>
-                            <span class="style-swatch swatch-anime"></span>
-                            <span><strong>Anime</strong><small>Coming soon</small></span>
-                        </button>
-                        <button class="style-option locked" type="button" disabled>
-                            <span class="style-swatch swatch-pro"></span>
-                            <span><strong>Professional</strong><small>Coming soon</small></span>
-                        </button>
-                        <button class="style-option locked" type="button" disabled>
-                            <span class="style-swatch swatch-cyber"></span>
-                            <span><strong>Cyberpunk</strong><small>Coming soon</small></span>
-                        </button>
+                        <label class="style-option" data-style-label="Pencil Sketch">
+                            <input type="radio" name="style" value="sketch">
+                            <span class="style-swatch swatch-sketch"></span>
+                            <span><strong>Pencil Sketch</strong><small>Graphite-inspired detail</small></span>
+                        </label>
+                        <label class="style-option" data-style-label="Comic Ink">
+                            <input type="radio" name="style" value="comic">
+                            <span class="style-swatch swatch-comic"></span>
+                            <span><strong>Comic Ink</strong><small>Posterized color + bold ink</small></span>
+                        </label>
+                        <label class="style-option" data-style-label="Soft Portrait">
+                            <input type="radio" name="style" value="portrait">
+                            <span class="style-swatch swatch-portrait"></span>
+                            <span><strong>Soft Portrait</strong><small>Polished tone + gentle detail</small></span>
+                        </label>
+                        <label class="style-option" data-style-label="Grayscale Art">
+                            <input type="radio" name="style" value="grayscale">
+                            <span class="style-swatch swatch-gray"></span>
+                            <span><strong>Grayscale Art</strong><small>High-contrast monochrome</small></span>
+                        </label>
+                        <label class="style-option" data-style-label="Edge Pop">
+                            <input type="radio" name="style" value="edgepop">
+                            <span class="style-swatch swatch-edge"></span>
+                            <span><strong>Edge Pop</strong><small>Vivid color + graphic edges</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <div class="control-title-row">
+                        <label for="style-intensity">3. Style intensity</label>
+                        <span id="intensity-value">70%</span>
+                    </div>
+                    <div class="range-control">
+                        <input id="style-intensity" name="intensity" type="range" min="10" max="100" step="5" value="70">
+                        <div class="range-labels"><span>Subtle</span><span>Strong</span></div>
                     </div>
                 </section>
 
                 <section class="control-section compact-controls">
                     <div class="control-title-row">
-                        <label>3. Output</label>
+                        <label>4. Output</label>
                         <span>Optimized</span>
                     </div>
                     <div class="output-row">
@@ -131,7 +155,7 @@
                     <article class="preview-card result-card">
                         <div class="preview-card-header">
                             <span>Forged</span>
-                            <span class="preview-badge">Signature Cartoon</span>
+                            <span class="preview-badge" id="result-style-badge">Signature Cartoon</span>
                         </div>
                         <div class="preview-image-wrap result-wrap">
                             <div class="generation-overlay" id="generation-overlay" hidden>

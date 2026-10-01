@@ -2,21 +2,28 @@
 
 **Your face. Your style. Your digital identity.**
 
-AvatarForge AI is an evolving digital identity platform for transforming personal photos into expressive avatars. The current release introduces a company-style product experience around a fast computer-vision cartoon renderer, with a roadmap toward professional portraits, anime, gaming identities, and generative AI styles.
+AvatarForge AI is an evolving digital identity platform for transforming personal photos into expressive avatars. The current release combines a company-style product experience with a multi-style computer-vision rendering engine and adjustable style intensity.
 
-## Current Release — Step 2
+## Current Release — Step 4
 
 - Premium, responsive product landing page
-- AvatarForge AI branding and visual system
-- Drag-and-drop image upload
-- JPG, PNG, and WEBP validation
-- 10 MB upload limit
-- Improved OpenCV cartoon rendering
-- Correct RGB/BGR image handling
-- In-page before/after preview
-- Direct result download
-- Mobile navigation and responsive layout
-- Accessible controls and reduced-motion support
+- Dedicated `/studio` avatar-generation workspace
+- Drag-and-drop image upload with source preview
+- JPG, PNG, and WEBP validation with a 10 MB limit
+- Six working visual styles:
+  - Signature Cartoon
+  - Pencil Sketch
+  - Comic Ink
+  - Soft Portrait
+  - Grayscale Art
+  - Edge Pop
+- Adjustable 10–100% style intensity
+- Side-by-side original/result comparison
+- Dynamic style labels and generation metadata
+- Regenerate and direct-download actions
+- Improved image processing with OpenCV, NumPy, and Pillow
+- Correct RGB/BGR color handling
+- Responsive controls for desktop and mobile
 
 ## Technology
 
@@ -24,7 +31,7 @@ AvatarForge AI is an evolving digital identity platform for transforming persona
 - **Image processing:** OpenCV, NumPy, Pillow
 - **Frontend:** HTML, CSS, vanilla JavaScript
 
-> The current image engine is computer vision, not a generative AI model. Generative AI is part of the product roadmap and will be introduced as a later platform step.
+> Step 4 uses deterministic computer-vision image transformations rather than a generative AI model. Model-backed generative styles are intentionally reserved for the later AI phase so the product remains technically accurate.
 
 ## Run locally
 
@@ -41,7 +48,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`.
+Open `http://127.0.0.1:5000` for the landing page and `http://127.0.0.1:5000/studio` for Avatar Studio.
 
 ## Project structure
 
@@ -51,11 +58,14 @@ avatarforge-ai/
 ├── requirements.txt
 ├── static/
 │   ├── css/
-│   │   └── style.css
+│   │   ├── style.css
+│   │   └── studio.css
 │   └── js/
-│       └── app.js
+│       ├── app.js
+│       └── studio.js
 ├── templates/
-│   └── index.html
+│   ├── index.html
+│   └── studio.html
 └── readme.md
 ```
 
@@ -63,8 +73,8 @@ avatarforge-ai/
 
 1. Brand foundation — complete
 2. Company-level landing page — complete
-3. Dedicated avatar generation workspace
-4. Multiple image styles and controls
+3. Dedicated avatar generation workspace — complete
+4. Multiple image styles and controls — complete
 5. FastAPI service architecture
 6. PostgreSQL and authentication
 7. Generative AI avatar models
@@ -79,9 +89,3 @@ AvatarForge AI is being designed as more than a filter utility. The long-term pl
 ---
 
 Built by **Prajwal Devaraj**.
-
-## Avatar Studio Workspace
-
-The `/studio` route provides a dedicated creation workspace with drag-and-drop upload, source preview, style selection, generation state, side-by-side original/result comparison, regeneration, and direct download actions.
-
-Current production engine: **Signature Cartoon**, powered by OpenCV image processing. Additional generative styles remain intentionally marked as coming soon until real model-backed implementations are added.

@@ -16,12 +16,26 @@ const downloadButton = document.getElementById('studio-download-button');
 const regenerateButton = document.getElementById('regenerate-button');
 const canvasStatus = document.getElementById('canvas-status');
 const previewTitle = document.getElementById('preview-title');
+const intensityInput = document.getElementById('style-intensity');
+const intensityValue = document.getElementById('intensity-value');
+const resultStyleBadge = document.getElementById('result-style-badge');
+const generationMeta = document.getElementById('generation-meta');
+const styleOptions = [...document.querySelectorAll('.style-option')];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 let originalObjectUrl = null;
 let generatedObjectUrl = null;
+
+function selectedStyle() {
+    const input = document.querySelector('input[name="style"]:checked');
+    const option = input?.closest('.style-option');
+    return {
+        value: input?.value || 'cartoon',
+        label: option?.dataset.styleLabel || 'Signature Cartoon',
+    };
+}
 
 function setStatus(label, state = '') {
     canvasStatus.className = `canvas-status ${state}`.trim();
@@ -71,7 +85,6 @@ function acceptFile(file) {
     if (!file) return false;
 
     if (!VALID_TYPES.includes(file.type)) {
-        message.textContent = 'Please choose a JPG, PNG, or WEBP image.';
         resetFile();
         message.textContent = 'Please choose a JPG, PNG, or WEBP image.';
         return false;
@@ -92,6 +105,26 @@ function acceptFile(file) {
 
 fileInput.addEventListener('change', () => acceptFile(fileInput.files[0]));
 removeFileButton.addEventListener('click', resetFile);
+
+styleOptions.forEach((option) => {
+    const radio = option.querySelector('input[type="radio"]');
+    radio.addEventListener('change', () => {
+        styleOptions.forEach((item) => item.classList.toggle('active', item === option));
+        const style = selectedStyle();
+        resultStyleBadge.textContent = style.label;
+        clearGeneratedResult();
+        if (fileInput.files[0]) {
+            previewTitle.textContent = `${style.label} selected`;
+            setStatus('Ready');
+        }
+    });
+});
+
+intensityInput.addEventListener('input', () => {
+    intensityValue.textContent = `${intensityInput.value}%`;
+    clearGeneratedResult();
+    if (fileInput.files[0]) setStatus('Ready');
+});
 
 dropZone.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -127,17 +160,22 @@ async function generateAvatar() {
     const file = fileInput.files[0];
     if (!file) return;
 
+    const style = selectedStyle();
+    const intensity = intensityInput.value;
+
     generateButton.classList.add('loading');
     generateButton.disabled = true;
     generationOverlay.hidden = false;
     resultActions.hidden = true;
     message.textContent = '';
     setStatus('Processing', 'processing');
-    previewTitle.textContent = 'Generating avatar';
+    previewTitle.textContent = `Generating ${style.label}`;
+    resultStyleBadge.textContent = style.label;
 
     const body = new FormData();
     body.append('file', file);
-    body.append('style', 'cartoon');
+    body.append('style', style.value);
+    body.append('intensity', intensity);
 
     try {
         const startedAt = performance.now();
@@ -154,10 +192,11 @@ async function generateAvatar() {
         generatedObjectUrl = URL.createObjectURL(blob);
         generatedPreview.src = generatedObjectUrl;
         downloadButton.href = generatedObjectUrl;
-        document.getElementById('generation-meta').textContent = `Signature Cartoon · High quality · ${elapsed}s`;
+        downloadButton.download = `avatarforge-${style.value}.jpg`;
+        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s`;
         resultActions.hidden = false;
         setStatus('Complete', 'complete');
-        previewTitle.textContent = 'Avatar complete';
+        previewTitle.textContent = `${style.label} complete`;
     } catch (error) {
         message.textContent = error.message;
         setStatus('Error');

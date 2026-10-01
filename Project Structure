@@ -1,6 +1,7 @@
 avatarforge-ai/
 ├── app.py
 ├── requirements.txt
+├── .gitignore
 ├── readme.md
 ├── templates/
 │   ├── index.html
