@@ -13,11 +13,22 @@ def init_database(app: Flask) -> None:
     """Create the SQLAlchemy engine/session factory and initialize tables."""
     database_url = app.config["DATABASE_URL"]
 
+    if (
+        app.config.get("DEBUG") is False
+        and not app.config.get("TESTING", False)
+        and app.config.get("REQUIRE_POSTGRES_IN_PRODUCTION", True)
+        and database_url.startswith("sqlite")
+    ):
+        raise RuntimeError("Production requires PostgreSQL. Set DATABASE_URL to a PostgreSQL database.")
+
     if database_url.startswith("sqlite:///"):
         raw_path = database_url.removeprefix("sqlite:///")
         Path(raw_path).parent.mkdir(parents=True, exist_ok=True)
 
-    engine = create_engine(database_url, future=True, pool_pre_ping=True)
+    engine_options = {"future": True, "pool_pre_ping": True}
+    if database_url.startswith("postgresql"):
+        engine_options.update({"pool_recycle": 300, "pool_size": 5, "max_overflow": 10})
+    engine = create_engine(database_url, **engine_options)
     session_factory = scoped_session(
         sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
     )
@@ -33,9 +44,16 @@ def init_database(app: Flask) -> None:
                     connection.execute(text("ALTER TABLE generation_jobs ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 0"))
                 if columns and "max_attempts" not in columns:
                     connection.execute(text("ALTER TABLE generation_jobs ADD COLUMN max_attempts INTEGER NOT NULL DEFAULT 2"))
+            with engine.begin() as connection:
+                user_columns = {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))}
+                if user_columns and "email_verified_at" not in user_columns:
+                    connection.execute(text("ALTER TABLE users ADD COLUMN email_verified_at DATETIME"))
     app.extensions["db_engine"] = engine
     app.extensions["db_session"] = session_factory
 
     @app.teardown_appcontext
-    def remove_database_session(_error=None):
+    def remove_database_session(error=None):
+        if error is not None:
+            session_factory.rollback()
         session_factory.remove()
+

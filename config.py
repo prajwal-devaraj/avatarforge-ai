@@ -78,6 +78,18 @@ class Config:
     PLAN_PRO_RATE_LIMIT_PER_MINUTE = int(os.environ.get("AVATARFORGE_PLAN_PRO_RATE_LIMIT_PER_MINUTE", "60"))
     PLAN_BUSINESS_GENERATION_QUOTA = int(os.environ.get("AVATARFORGE_PLAN_BUSINESS_GENERATION_QUOTA", "2500"))
     PLAN_BUSINESS_RATE_LIMIT_PER_MINUTE = int(os.environ.get("AVATARFORGE_PLAN_BUSINESS_RATE_LIMIT_PER_MINUTE", "180"))
+    EMAIL_BACKEND = os.environ.get("AVATARFORGE_EMAIL_BACKEND", "console")
+    EMAIL_FROM = os.environ.get("AVATARFORGE_EMAIL_FROM", "no-reply@avatarforge.local")
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+    SMTP_HOST = os.environ.get("SMTP_HOST", "")
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+    SMTP_USE_TLS = env_bool("SMTP_USE_TLS", True)
+    EMAIL_VERIFICATION_REQUIRED = env_bool("AVATARFORGE_EMAIL_VERIFICATION_REQUIRED", False)
+    EMAIL_VERIFICATION_TOKEN_MAX_AGE = int(os.environ.get("AVATARFORGE_EMAIL_VERIFICATION_TOKEN_MAX_AGE", "86400"))
+    PASSWORD_RESET_TOKEN_MAX_AGE = int(os.environ.get("AVATARFORGE_PASSWORD_RESET_TOKEN_MAX_AGE", "3600"))
+    REQUIRE_POSTGRES_IN_PRODUCTION = env_bool("AVATARFORGE_REQUIRE_POSTGRES_IN_PRODUCTION", True)
 
 
 class DevelopmentConfig(Config):
@@ -87,5 +99,6 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    EMAIL_VERIFICATION_REQUIRED = env_bool("AVATARFORGE_EMAIL_VERIFICATION_REQUIRED", True)
     SESSION_COOKIE_SECURE = env_bool("AVATARFORGE_SESSION_COOKIE_SECURE", True)
     AUTO_CREATE_DB = False

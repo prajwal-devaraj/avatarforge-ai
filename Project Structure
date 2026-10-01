@@ -73,3 +73,12 @@ Step 14 additions:
 - templates/billing.html — plan and monthly usage dashboard
 - templates/settings.html — account email/password settings
 - tests/test_billing_account.py — billing and settings coverage
+
+Step 15 additions:
+- services/account_security_service.py — signed verification/reset tokens
+- services/email_service.py — console/SMTP transactional email abstraction
+- migrations/versions/0006_email_verification.py — verification metadata
+- templates/auth/forgot_password.html — password recovery request
+- templates/auth/reset_password.html — secure password reset
+- templates/auth/resend_verification.html — verification resend flow
+- tests/test_account_security.py — account-security regression coverage

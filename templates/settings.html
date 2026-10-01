@@ -13,7 +13,7 @@
   <div class="history-heading"><div><span class="kicker">Account</span><h1>Settings</h1></div><p>Manage your sign-in email and password from one place.</p></div>
   {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="form-alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
   <div class="settings-grid">
-    <section class="settings-card"><h2>Profile</h2><form class="account-form" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="profile"><label>Email<input type="email" name="email" value="{{ current_user.email }}" required></label><button class="account-primary" type="submit">Update email</button></form></section>
+    <section class="settings-card"><h2>Profile</h2><p class="account-lead">Email status: <strong>{{ "Verified" if current_user.email_verified_at else "Unverified" }}</strong></p><form class="account-form" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="profile"><label>Email<input type="email" name="email" value="{{ current_user.email }}" required></label><button class="account-primary" type="submit">Update email</button></form></section>
     <section class="settings-card"><h2>Password</h2><form class="account-form" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="password"><label>Current password<input type="password" name="current_password" required></label><label>New password<input type="password" name="new_password" minlength="8" required></label><button class="account-primary" type="submit">Update password</button></form></section>
   </div>
 </main>

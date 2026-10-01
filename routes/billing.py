@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models import User
 from services.billing_service import PLANS, get_subscription, handle_stripe_event, start_billing_portal, start_checkout, usage_summary, verify_stripe_signature
+from services.account_security_service import send_verification_email
 from utils.auth import login_required
 from utils.security import valid_csrf_token
 
@@ -78,7 +79,13 @@ def account_settings():
                     db.rollback()
                     flash("That email address is already in use.", "error")
                 else:
-                    flash("Account email updated.", "success")
+                    if current_app.config.get("EMAIL_VERIFICATION_REQUIRED"):
+                        g.user.email_verified_at = None
+                        db.commit()
+                        send_verification_email(g.user)
+                        flash("Account email updated. Verify the new address before your next sign in.", "success")
+                    else:
+                        flash("Account email updated.", "success")
         elif action == "password":
             current_password = request.form.get("current_password", "")
             new_password = request.form.get("new_password", "")

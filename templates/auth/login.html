@@ -44,6 +44,8 @@
                 <button class="account-primary" type="submit">Sign in</button>
             </form>
 
+            <p class="account-switch"><a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a> · <a href="{{ url_for('auth.resend_verification') }}">Resend verification</a></p>
+
             <p class="account-switch">New to AvatarForge? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
         </section>
 

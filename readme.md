@@ -358,3 +358,11 @@ folders.
 ## Step 14 — Billing, Plans, Usage & Account Settings
 
 AvatarForge includes a plan catalog (Free, Pro, Business), monthly usage dashboard, account settings, and a billing abstraction that defaults to safe local mock mode. Set `AVATARFORGE_BILLING_PROVIDER=stripe` plus the Stripe secret, webhook secret, price IDs, and public `AVATARFORGE_APP_BASE_URL` to enable hosted Stripe Checkout and Billing Portal flows. Stripe webhook events update the local subscription record. For Vercel, keep state in managed PostgreSQL and object storage; do not rely on the serverless filesystem for persistent data.
+
+## Step 15 — Account security
+
+AvatarForge supports signed, time-limited email verification and password-reset links, a console email backend for local development, Resend HTTP API for Vercel/serverless production, and SMTP as an alternative. Production configuration can require verified emails and rejects accidental SQLite usage when PostgreSQL is required. Reset tokens are invalidated automatically after a password change because the password hash is bound into the signed token.
+
+New security headers include a restrictive Content Security Policy and HSTS on secure production requests. Database engines use connection health checks, PostgreSQL pool recycling, and request teardown rollback on failures.
+
+For local development keep `AVATARFORGE_EMAIL_BACKEND=console` and `AVATARFORGE_EMAIL_VERIFICATION_REQUIRED=0`. For production, prefer `AVATARFORGE_EMAIL_BACKEND=resend` with `RESEND_API_KEY` on Vercel (SMTP remains available), set `AVATARFORGE_EMAIL_VERIFICATION_REQUIRED=1`, and use PostgreSQL through `DATABASE_URL`.
