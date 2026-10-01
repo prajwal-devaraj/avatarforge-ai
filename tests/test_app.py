@@ -4,6 +4,9 @@ from config import Config
 
 class TestConfig(Config):
     TESTING = True
+    DATABASE_URL = "sqlite:///:memory:"
+    GENERATED_STORAGE_DIR = "/tmp/avatarforge-test-generated"
+    SECRET_KEY = "test-secret"
 
 
 def test_homepage_loads():

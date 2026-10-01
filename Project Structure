@@ -1,35 +1,57 @@
 avatarforge-ai/
-├── app.py
-├── config.py
-├── pytest.ini
-├── requirements.txt
+├── app.py                         # Flask application factory and request/user context
+├── config.py                      # Environment, database, session and storage configuration
+├── database.py                    # SQLAlchemy engine + scoped session initialization
+├── alembic.ini                    # Database migration configuration
+├── .env.example                   # Environment variable reference
+├── models/
+│   ├── base.py                    # SQLAlchemy declarative base
+│   ├── user.py                    # User account + password hashing model
+│   └── generation.py              # Saved generation metadata model
 ├── routes/
-│   ├── __init__.py
-│   ├── pages.py
-│   ├── api.py
-│   └── api_v1.py
+│   ├── pages.py                   # Landing page and studio routes
+│   ├── auth.py                    # Register, login and logout routes
+│   ├── account.py                 # Private history + generated-image routes
+│   ├── api.py                     # Legacy compatibility API
+│   └── api_v1.py                  # Versioned API contracts
 ├── services/
-│   ├── __init__.py
-│   ├── generation_service.py
-│   └── image_service.py
+│   ├── image_service.py           # Computer-vision style engine
+│   ├── generation_service.py      # Generation orchestration
+│   └── history_service.py         # Private output + metadata persistence
 ├── utils/
-│   ├── __init__.py
-│   ├── api_response.py
+│   ├── api_response.py            # Standardized API response helpers
+│   ├── auth.py                    # Session auth helpers + login protection
+│   ├── security.py                # CSRF token helpers
 │   ├── image_utils.py
 │   └── validators.py
 ├── templates/
 │   ├── index.html
-│   └── studio.html
+│   ├── studio.html
+│   ├── generations.html           # Private saved-generation gallery
+│   └── auth/
+│       ├── login.html
+│       └── register.html
 ├── static/
 │   ├── css/
 │   │   ├── style.css
-│   │   └── studio.css
+│   │   ├── studio.css
+│   │   └── account.css
 │   └── js/
 │       ├── app.js
 │       └── studio.js
+├── migrations/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+│       └── 0001_accounts_and_generations.py
 ├── tests/
 │   ├── test_app.py
 │   ├── test_api_v1.py
+│   ├── test_auth_history.py
 │   ├── test_image_service.py
 │   └── test_validators.py
+├── pytest.ini
+├── requirements.txt
 └── readme.md
+
+Runtime-only data is stored under instance/ and intentionally excluded from Git.

@@ -3,9 +3,10 @@ from __future__ import annotations
 import base64
 import time
 
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, g, request, url_for
 
 from services.generation_service import generate_avatar
+from services.history_service import save_generation
 from services.image_service import STYLE_LABELS
 from utils.api_response import api_error, api_success
 
@@ -51,6 +52,31 @@ def generate_v1():
         image_base64 = base64.b64encode(image_bytes).decode("ascii")
         elapsed_ms = round((time.perf_counter() - started_at) * 1000, 2)
 
+        saved_generation = None
+        if g.get("user") is not None:
+            saved_generation = save_generation(
+                user_id=g.user.id,
+                result=result,
+                processing_ms=elapsed_ms,
+            )
+
+        generation_payload = {
+            "style": result.style,
+            "style_label": result.style_label,
+            "intensity": result.intensity,
+            "saved": saved_generation is not None,
+        }
+        if saved_generation is not None:
+            generation_payload.update(
+                {
+                    "id": saved_generation.id,
+                    "history_url": url_for("account.generations"),
+                    "image_url": url_for(
+                        "account.generation_image", generation_id=saved_generation.id
+                    ),
+                }
+            )
+
         return api_success(
             {
                 "image": {
@@ -58,11 +84,7 @@ def generate_v1():
                     "base64": image_base64,
                     "download_name": result.download_name,
                 },
-                "generation": {
-                    "style": result.style,
-                    "style_label": result.style_label,
-                    "intensity": result.intensity,
-                },
+                "generation": generation_payload,
             },
             meta={"processing_ms": elapsed_ms},
         )

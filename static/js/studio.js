@@ -199,7 +199,8 @@ async function generateAvatar() {
         downloadButton.download = image.download_name;
         const serverMs = payload.meta?.processing_ms;
         const serverLabel = Number.isFinite(serverMs) ? ` · ${serverMs}ms server` : '';
-        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s${serverLabel}`;
+        const savedLabel = payload.data.generation?.saved ? ' · Saved to history' : '';
+        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s${serverLabel}${savedLabel}`;
         resultActions.hidden = false;
         setStatus('Complete', 'complete');
         previewTitle.textContent = `${style.label} complete`;

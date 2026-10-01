@@ -22,7 +22,15 @@
             <span class="workspace-dot"></span>
             <span>Avatar Studio</span>
         </div>
-        <a class="studio-home-link" href="{{ url_for('pages.index') }}">Back to home</a>
+        <div class="studio-account-nav">
+            {% if current_user %}
+                <a class="studio-home-link" href="{{ url_for('account.generations') }}">My generations</a>
+                <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="studio-signout" type="submit">Sign out</button></form>
+            {% else %}
+                <a class="studio-home-link" href="{{ url_for('auth.login', next=url_for('pages.studio')) }}">Sign in</a>
+                <a class="studio-account-button" href="{{ url_for('auth.register') }}">Create account</a>
+            {% endif %}
+        </div>
     </header>
 
     <main class="studio-shell">
@@ -118,7 +126,11 @@
                     <span class="button-label">Generate avatar</span>
                     <span class="button-loader" aria-hidden="true"></span>
                 </button>
-                <p class="privacy-note">Your upload is processed for this request and is not added to a permanent gallery in this release.</p>
+                {% if current_user %}
+                <p class="privacy-note">Your source upload is request-scoped. Generated results are saved to your private account history.</p>
+                {% else %}
+                <p class="privacy-note">Your source upload is request-scoped. <a href="{{ url_for('auth.login', next=url_for('pages.studio')) }}">Sign in</a> to save generated results to a private history.</p>
+                {% endif %}
             </form>
         </aside>
 
@@ -185,4 +197,3 @@
     <script src="{{ url_for('static', filename='js/studio.js') }}"></script>
 </body>
 </html>
-

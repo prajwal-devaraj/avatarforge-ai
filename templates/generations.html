@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07070b">
+    <title>My Generations — AvatarForge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+</head>
+<body class="history-page">
+    <header class="history-header">
+        <div class="shell history-nav">
+            <a class="brand" href="{{ url_for('pages.index') }}"><span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span></a>
+            <div class="history-actions">
+                <a href="{{ url_for('pages.studio') }}">Create avatar</a>
+                <span>{{ current_user.email }}</span>
+                <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit">Sign out</button></form>
+            </div>
+        </div>
+    </header>
+
+    <main class="shell history-shell">
+        <div class="history-heading">
+            <div><span class="kicker">Private gallery</span><h1>My generations</h1></div>
+            <p>Your generated results are stored in your account. Source uploads are not persisted by this feature.</p>
+        </div>
+
+        {% if generations %}
+            <section class="history-grid">
+                {% for generation in generations %}
+                    <article class="generation-card">
+                        <a class="generation-image" href="{{ url_for('account.generation_image', generation_id=generation.id) }}" target="_blank" rel="noopener">
+                            <img src="{{ url_for('account.generation_image', generation_id=generation.id) }}" alt="{{ generation.style_label }} avatar">
+                        </a>
+                        <div class="generation-card-body">
+                            <div><strong>{{ generation.style_label }}</strong><span>{{ generation.intensity }}% intensity</span></div>
+                            <div class="generation-meta-row"><span>{{ generation.created_at.strftime('%b %d, %Y · %H:%M') }}</span><span>{{ '%.0f'|format(generation.processing_ms) }}ms</span></div>
+                            <a class="generation-download" href="{{ url_for('account.generation_image', generation_id=generation.id, download=1) }}">Download</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="history-empty">
+                <span class="account-orb">AF</span>
+                <h2>No saved generations yet.</h2>
+                <p>Generate your first signed-in avatar and it will appear here automatically.</p>
+                <a class="account-primary" href="{{ url_for('pages.studio') }}">Open Avatar Studio</a>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

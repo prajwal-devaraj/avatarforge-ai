@@ -33,7 +33,15 @@
                 <a href="#privacy">Privacy</a>
             </nav>
 
-            <a class="button button-small button-ghost desktop-cta" href="{{ url_for('pages.studio') }}">Create avatar</a>
+            <div class="desktop-account-nav">
+                {% if current_user %}
+                    <a class="account-text-link" href="{{ url_for('account.generations') }}">My generations</a>
+                    <a class="button button-small button-ghost desktop-cta" href="{{ url_for('pages.studio') }}">Create avatar</a>
+                {% else %}
+                    <a class="account-text-link" href="{{ url_for('auth.login') }}">Sign in</a>
+                    <a class="button button-small button-ghost desktop-cta" href="{{ url_for('auth.register') }}">Create account</a>
+                {% endif %}
+            </div>
         </div>
     </header>
 
@@ -50,7 +58,7 @@
                 <div class="hero-trust">
                     <div><strong>10 MB</strong><span>upload limit</span></div>
                     <div><strong>3</strong><span>image formats</span></div>
-                    <div><strong>0</strong><span>accounts required</span></div>
+                    <div><strong>Optional</strong><span>private accounts</span></div>
                 </div>
             </div>
 
@@ -219,7 +227,7 @@
                 <div>
                     <span class="kicker">Trust is part of the product</span>
                     <h2>Your image should stay yours.</h2>
-                    <p>The current release does not provide accounts, permanent galleries, or training pipelines. Uploaded files are processed for the generation request and the rendered result is returned directly to you.</p>
+                    <p>Source photos are processed for the generation request and are not persisted by the account history feature. Signed-in users can choose the built-in workflow that automatically saves generated outputs and generation metadata to a private gallery.</p>
                 </div>
                 <div class="privacy-stat"><strong>Privacy-first</strong><span>by product direction</span></div>
             </div>
@@ -247,4 +255,3 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
-

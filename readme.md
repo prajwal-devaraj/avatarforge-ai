@@ -2,134 +2,183 @@
 
 **Your face. Your style. Your digital identity.**
 
-AvatarForge AI is an evolving digital identity platform for transforming personal photos into expressive avatars. The current release combines a company-style product experience with a multi-style computer-vision rendering engine and adjustable style intensity.
+AvatarForge AI is an evolving digital identity and avatar platform. The current release combines a polished Flask product experience, a versioned API, a modular computer-vision rendering engine, secure account sessions, and private saved-generation history.
 
-## Current Release — Step 6
+## Step 7 capabilities
 
-- Premium, responsive product landing page
-- Dedicated `/studio` avatar-generation workspace
-- Drag-and-drop image upload with source preview
-- JPG, PNG, and WEBP validation with a 10 MB limit
-- Six working visual styles:
-  - Signature Cartoon
-  - Pencil Sketch
-  - Comic Ink
-  - Soft Portrait
-  - Grayscale Art
-  - Edge Pop
-- Adjustable 10–100% style intensity
-- Side-by-side original/result comparison
-- Dynamic style labels and generation metadata
-- Regenerate and direct-download actions
-- Improved image processing with OpenCV, NumPy, and Pillow
-- Correct RGB/BGR color handling
-- Responsive controls for desktop and mobile
+- Six working image styles with configurable intensity
+- Dedicated Avatar Studio and before/after preview
+- Versioned `/api/v1` API with standardized response contracts
+- Email/password account registration and sign-in
+- Werkzeug password hashing
+- CSRF protection for account form actions
+- Private generated-image history with ownership checks
+- Request-scoped source uploads; source images are not persisted by the history feature
+- SQLAlchemy data models
+- SQLite for zero-configuration local development
+- PostgreSQL-ready `DATABASE_URL` configuration
+- Alembic migration baseline
+- Private generated outputs stored outside the public `static/` directory
+- Automated test coverage for API, auth, persistence, validation, and image processing
 
-## Technology
+## Architecture
 
-- **Backend:** Python, Flask
-- **Image processing:** OpenCV, NumPy, Pillow
-- **Frontend:** HTML, CSS, vanilla JavaScript
+```text
+Browser
+  |
+  +--> Flask page/auth routes
+  |
+  +--> /api/v1/generate
+          |
+          +--> validation
+          +--> generation_service
+          +--> image_service (OpenCV)
+          +--> JPEG response
+          |
+          +--> signed-in user?
+                  |
+                  +--> private generated output
+                  +--> SQLAlchemy Generation record
 
-> Step 4 uses deterministic computer-vision image transformations rather than a generative AI model. Model-backed generative styles are intentionally reserved for the later AI phase so the product remains technically accurate.
-
-## Run locally
-
-```bash
-git clone <your-repository-url>
-cd avatarforge-ai
-python -m venv .venv
+Database
+  Local: SQLite
+  Production target: PostgreSQL
 ```
 
-Activate the environment, then install dependencies:
+## Local setup
 
-```bash
-pip install -r requirements.txt
+Create and activate a virtual environment, then install dependencies:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+Run the tests:
+
+```powershell
+python -m pytest -q
+```
+
+Start the application:
+
+```powershell
 python app.py
 ```
 
-Open `http://127.0.0.1:5000` for the landing page and `http://127.0.0.1:5000/studio` for Avatar Studio.
-
-## Project structure
+Open:
 
 ```text
-avatarforge-ai/
-├── app.py
-├── requirements.txt
-├── static/
-│   ├── css/
-│   │   ├── style.css
-│   │   └── studio.css
-│   └── js/
-│       ├── app.js
-│       └── studio.js
-├── templates/
-│   ├── index.html
-│   └── studio.html
-└── readme.md
+http://127.0.0.1:5000
+http://127.0.0.1:5000/studio
 ```
 
-## Product roadmap
+## Accounts and generation history
 
-1. Brand foundation — complete
-2. Company-level landing page — complete
-3. Dedicated avatar generation workspace — complete
-4. Multiple image styles and controls — complete
-5. Modular backend architecture — complete
-6. Versioned API foundation — complete
-7. PostgreSQL and authentication
-8. Generative AI avatar models
-9. Generation history and cloud storage
-10. Background workers, developer API, observability, billing, and production deployment
+Account routes:
 
-## Product direction
-
-AvatarForge AI is being designed as more than a filter utility. The long-term platform will support professional portraits, creator identities, gaming avatars, artistic transformations, developer integrations, and privacy-conscious AI generation workflows.
-
----
-
-Built by **Prajwal Devaraj**.
-
-## Backend architecture
-
-Step 5 reorganizes the application around clear responsibilities while preserving the existing Flask routes and UI:
-
-- `routes/` owns HTTP/page routing only.
-- `services/` owns image decoding, style engines, and generation orchestration.
-- `utils/` contains small reusable validation and image helpers.
-- `config.py` centralizes environment-aware Flask configuration.
-- `tests/` adds unit and route-level coverage for core behavior.
-- `app.py` now uses an application factory, making testing and future deployment easier.
-
-Run the test suite with:
-
-```bash
-pytest -q
+```text
+/auth/register
+/auth/login
+/generations
 ```
 
+Guests can continue generating avatars. When a user is signed in, successful generations are automatically saved to that user's private history. The source upload itself is not written to the history store.
+
+Generated images are written under `instance/generated/<user-id>/` and served only through an ownership-checked route.
+
+## Database configuration
+
+Without configuration, local development uses:
+
+```text
+instance/avatarforge.db
+```
+
+For PostgreSQL, set `DATABASE_URL`, for example:
+
+```text
+DATABASE_URL=postgresql://avatarforge:password@localhost:5432/avatarforge
+```
+
+The application normalizes PostgreSQL URLs for the Psycopg 3 SQLAlchemy driver.
+
+Before production deployment, set a strong secret:
+
+```text
+AVATARFORGE_SECRET_KEY=<long-random-secret>
+AVATARFORGE_ENV=production
+```
+
+See `.env.example` for the supported variables.
+
+## Database migrations
+
+Step 7 includes an Alembic baseline for `users` and `generations`.
+
+For a fresh production database:
+
+```powershell
+alembic upgrade head
+```
+
+Development mode also creates missing tables automatically for a frictionless local start. Production deployment should use migrations as the source of truth.
 
 ## API v1
 
-Step 6 introduces a versioned JSON API while preserving the legacy `/generate` route during migration.
+### Health
 
-- `GET /api/v1/health` — service health and API version
-- `GET /api/v1/styles` — registered visual styles
-- `POST /api/v1/generate` — multipart avatar generation with a standardized JSON response
-- Every v1 response uses `success`, `data`, `error`, and `meta` fields.
-- Every request receives an `X-Request-ID`; callers may also supply one for trace correlation.
-- Generation responses include processing time metadata and a base64-encoded JPEG payload.
-
-Example success envelope:
-
-```json
-{
-  "success": true,
-  "data": {},
-  "error": null,
-  "meta": {
-    "request_id": "..."
-  }
-}
+```http
+GET /api/v1/health
 ```
 
-The browser Studio now consumes `/api/v1/generate`. The original `/generate` endpoint remains temporarily available for backward compatibility and is marked deprecated in its response headers.
+### Styles
+
+```http
+GET /api/v1/styles
+```
+
+### Generate
+
+```http
+POST /api/v1/generate
+Content-Type: multipart/form-data
+```
+
+Fields:
+
+```text
+file=<JPG/PNG/WEBP>
+style=cartoon|sketch|comic|portrait|grayscale|edgepop
+intensity=10..100
+```
+
+When authenticated, the response includes a saved generation ID and private history links. Guests receive the same generated image without persistence.
+
+## Privacy direction
+
+AvatarForge is being built around explicit ownership and controlled retention. In this release:
+
+- source uploads are processed in-memory for the request and are not persisted to account history;
+- generated outputs are persisted only for signed-in users;
+- saved output routes verify that the current account owns the requested generation;
+- local database files, private generated assets, secrets, and environment files are ignored by Git.
+
+## Current technology
+
+- Python
+- Flask
+- SQLAlchemy 2
+- Alembic
+- PostgreSQL-ready Psycopg 3 configuration
+- SQLite local development
+- OpenCV
+- Pillow
+- NumPy
+- HTML / CSS / JavaScript
+- Pytest
+
+## Roadmap
+
+The next milestones are cloud object storage, asynchronous generation workers, real generative-AI inference, observability, and production deployment infrastructure.

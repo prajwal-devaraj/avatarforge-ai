@@ -499,3 +499,11 @@
 @media (max-width: 1250px) {
     .style-grid { grid-template-columns: 1fr; }
 }
+
+/* Step 7 — authenticated workspace navigation */
+.studio-account-nav { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+.studio-account-nav form { margin:0; }
+.studio-signout { border:0; background:none; color:rgba(255,255,255,.42); font:inherit; font-size:10px; cursor:pointer; padding:8px; }
+.studio-account-button { min-height:34px; padding:0 12px; border-radius:9px; display:inline-flex; align-items:center; color:#fff; font-size:10px; font-weight:700; background:rgba(111,82,255,.16); border:1px solid rgba(126,101,255,.22); }
+.privacy-note a { color:#9d8aff; text-decoration:underline; text-underline-offset:2px; }
+@media(max-width:680px){.studio-account-button{display:none}.studio-signout{padding-right:0}}

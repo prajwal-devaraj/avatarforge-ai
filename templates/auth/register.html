@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07070b">
+    <title>Create account — AvatarForge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+</head>
+<body class="account-page">
+    <div class="account-glow" aria-hidden="true"></div>
+    <header class="account-header shell">
+        <a class="brand" href="{{ url_for('pages.index') }}">
+            <span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span>
+        </a>
+        <a class="account-back" href="{{ url_for('pages.studio') }}">Back to studio</a>
+    </header>
+
+    <main class="account-shell shell">
+        <section class="account-card">
+            <span class="kicker">Create your workspace</span>
+            <h1>Build your private avatar library.</h1>
+            <p class="account-lead">Create an account to save generated results and revisit your generation history.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, text in messages %}
+                    <div class="form-alert {{ category }}">{{ text }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="post" class="account-form">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <label>Email
+                    <input type="email" name="email" autocomplete="email" required placeholder="you@example.com">
+                </label>
+                <label>Password
+                    <input type="password" name="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters">
+                </label>
+                <label>Confirm password
+                    <input type="password" name="confirm_password" autocomplete="new-password" minlength="8" required placeholder="Repeat your password">
+                </label>
+                <button class="account-primary" type="submit">Create account</button>
+            </form>
+
+            <p class="account-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+        </section>
+
+        <aside class="account-aside">
+            <span class="account-orb">AF</span>
+            <h2>Persistence without keeping your source photo.</h2>
+            <p>AvatarForge saves generated outputs for signed-in users while the uploaded source remains request-scoped in this release.</p>
+            <div class="account-points"><span>Hashed passwords</span><span>Private history routes</span><span>SQLite locally · PostgreSQL ready</span></div>
+        </aside>
+    </main>
+</body>
+</html>
