@@ -15,6 +15,13 @@ def normalize_database_url(value: str) -> str:
     return value
 
 
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Config:
     """Base application configuration for AvatarForge AI."""
 
@@ -43,13 +50,15 @@ class Config:
     JOB_STORAGE_DIR = os.environ.get(
         "AVATARFORGE_JOB_DIR", str(INSTANCE_DIR / "jobs")
     )
+    TRUST_PROXY_HEADERS = env_bool("AVATARFORGE_TRUST_PROXY_HEADERS", False)
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    SESSION_COOKIE_SECURE = False
 
 
 class ProductionConfig(Config):
     DEBUG = False
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = env_bool("AVATARFORGE_SESSION_COOKIE_SECURE", True)
     AUTO_CREATE_DB = False

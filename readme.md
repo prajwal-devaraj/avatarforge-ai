@@ -209,3 +209,44 @@ Python, Flask, SQLAlchemy 2, Alembic, PostgreSQL/Psycopg 3, SQLite, OpenCV, Pill
 ## Next milestones
 
 Cloud object storage, job expiry/cleanup policies, retries and dead-letter handling, observability, rate limiting, production deployment, and billing/usage controls.
+
+## Production runtime with Docker
+
+Step 11 adds a containerized production runtime built around Gunicorn, PostgreSQL, Redis, RQ workers, Alembic migrations, health checks, and shared private generation storage.
+
+### Local Docker stack
+
+1. Copy `.env.docker.example` to `.env`.
+2. Replace `AVATARFORGE_SECRET_KEY` and `POSTGRES_PASSWORD` with strong local values.
+3. Keep `AVATARFORGE_AI_PROVIDER=mock` until a real AI provider key is available.
+4. Start the stack:
+
+```bash
+docker compose up --build
+```
+
+The web application is available at `http://localhost:8000` by default. Docker Compose starts:
+
+- `web` — Flask served by Gunicorn
+- `worker` — RQ background generation worker
+- `db` — PostgreSQL
+- `redis` — Redis queue backend
+
+The web container applies Alembic migrations before Gunicorn starts. Generated files and job outputs are stored in a shared private Docker volume so the web and worker containers see the same data.
+
+### Production environment notes
+
+Set `AVATARFORGE_ENV=production`, provide a long random `AVATARFORGE_SECRET_KEY`, use a managed PostgreSQL database and Redis service, and set `AVATARFORGE_SESSION_COOKIE_SECURE=1` behind HTTPS. Set `AVATARFORGE_TRUST_PROXY_HEADERS=1` only when the application is actually behind a trusted reverse proxy or load balancer that sets forwarding headers.
+
+Never commit `.env`, `FAL_KEY`, database passwords, or production secrets.
+
+### Direct Gunicorn runtime
+
+Outside Docker, production can be started with:
+
+```bash
+alembic upgrade head
+gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 180 wsgi:app
+```
+
+For RQ-backed generation jobs, run a separate worker process connected to the same Redis instance and shared generation storage.

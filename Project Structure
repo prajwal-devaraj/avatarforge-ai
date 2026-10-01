@@ -1,57 +1,55 @@
 avatarforge-ai/
-├── app.py                         # Flask application factory and request/user context
-├── config.py                      # Environment, database, AI and queue configuration
-├── database.py                    # SQLAlchemy engine + scoped session initialization
-├── worker.py                      # Redis/RQ worker entry point
-├── alembic.ini                    # Database migration configuration
-├── .env.example                   # Environment variable reference
-├── models/
-│   ├── base.py                    # SQLAlchemy declarative base
-│   ├── user.py                    # User account model
-│   ├── generation.py              # Saved generation metadata
-│   └── job.py                     # Asynchronous generation job state
-├── routes/
-│   ├── pages.py                   # Landing page and studio routes
-│   ├── auth.py                    # Register, login and logout routes
-│   ├── account.py                 # Private history + generated-image routes
-│   ├── api.py                     # Legacy compatibility API
-│   └── api_v1.py                  # Versioned sync + async API contracts
-├── services/
-│   ├── ai/                        # Mock, fal.ai and generic remote providers
-│   ├── generation_service.py      # Generation orchestration
-│   ├── history_service.py         # Private output persistence
-│   ├── image_service.py           # Computer-vision styles
-│   ├── job_service.py             # Job lifecycle + temporary/output files
-│   ├── queue_service.py           # Inline, local-thread, and Redis/RQ dispatch
-│   └── prompt_service.py          # AI prompt construction
-├── utils/
-│   ├── api_response.py
-│   ├── auth.py
-│   ├── security.py
-│   ├── image_utils.py
-│   └── validators.py
-├── templates/
-│   ├── index.html
-│   ├── studio.html
-│   ├── generations.html
-│   └── auth/
-├── static/
-│   ├── css/
-│   └── js/
+├── app.py
+├── wsgi.py
+├── worker.py
+├── config.py
+├── database.py
+├── requirements.txt
+├── pytest.ini
+├── alembic.ini
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── .env.example
+├── .env.docker.example
+├── docker/
+│   ├── entrypoint.sh
+│   └── worker-entrypoint.sh
 ├── migrations/
 │   └── versions/
 │       ├── 0001_accounts_and_generations.py
 │       └── 0002_generation_jobs.py
+├── models/
+│   ├── base.py
+│   ├── user.py
+│   ├── generation.py
+│   └── job.py
+├── routes/
+│   ├── pages.py
+│   ├── auth.py
+│   ├── account.py
+│   ├── api.py
+│   └── api_v1.py
+├── services/
+│   ├── ai/
+│   │   ├── base.py
+│   │   ├── factory.py
+│   │   ├── mock_provider.py
+│   │   ├── fal_provider.py
+│   │   └── remote_provider.py
+│   ├── generation_service.py
+│   ├── history_service.py
+│   ├── image_service.py
+│   ├── job_service.py
+│   ├── prompt_service.py
+│   └── queue_service.py
+├── static/
+│   ├── css/
+│   └── js/
+├── templates/
+│   ├── auth/
+│   ├── generations.html
+│   ├── index.html
+│   └── studio.html
 ├── tests/
-│   ├── test_app.py
-│   ├── test_api_v1.py
-│   ├── test_auth_history.py
-│   ├── test_fal_provider.py
-│   ├── test_image_service.py
-│   ├── test_jobs.py
-│   └── test_validators.py
-├── pytest.ini
-├── requirements.txt
-└── readme.md
-
-Runtime-only databases, temporary job inputs, job outputs, generated account assets, and secrets live under instance/ and are excluded from Git.
+└── utils/

@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from flask import Flask, g, request, session
+from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import select
 
 from config import DevelopmentConfig, ProductionConfig
@@ -26,6 +27,13 @@ def create_app(config_object=None) -> Flask:
         config_object = ProductionConfig if environment == "production" else DevelopmentConfig
 
     app.config.from_object(config_object)
+
+    if app.config.get("TRUST_PROXY_HEADERS"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+
+    if app.config.get("DEBUG") is False and app.config.get("SECRET_KEY") == "dev-only-change-me":
+        raise RuntimeError("AVATARFORGE_SECRET_KEY must be set in production.")
+
     init_database(app)
     Path(app.config["JOB_STORAGE_DIR"]).mkdir(parents=True, exist_ok=True)
 
@@ -56,6 +64,10 @@ def create_app(config_object=None) -> Flask:
     def attach_request_id(response):
         if getattr(g, "request_id", None):
             response.headers["X-Request-ID"] = g.request_id
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         return response
 
     @app.errorhandler(413)

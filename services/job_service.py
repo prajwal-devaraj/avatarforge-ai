@@ -138,4 +138,3 @@ def process_generation_job(job_id: str) -> None:
             Path(job.input_path).unlink(missing_ok=True)
         except OSError:
             current_app.logger.warning("Could not delete temporary job input for %s", job_id)
-

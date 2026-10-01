@@ -1,0 +1,84 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-avatarforge}
+      POSTGRES_USER: ${POSTGRES_USER:-avatarforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-avatarforge-local-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-avatarforge} -d ${POSTGRES_DB:-avatarforge}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    environment:
+      AVATARFORGE_ENV: production
+      AVATARFORGE_SECRET_KEY: ${AVATARFORGE_SECRET_KEY:-local-docker-change-me-before-production}
+      AVATARFORGE_SESSION_COOKIE_SECURE: ${AVATARFORGE_SESSION_COOKIE_SECURE:-0}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-avatarforge}:${POSTGRES_PASSWORD:-avatarforge-local-password}@db:5432/${POSTGRES_DB:-avatarforge}
+      AVATARFORGE_JOB_BACKEND: rq
+      REDIS_URL: redis://redis:6379/0
+      AVATARFORGE_RQ_QUEUE: avatarforge
+      AVATARFORGE_AI_PROVIDER: ${AVATARFORGE_AI_PROVIDER:-mock}
+      FAL_KEY: ${FAL_KEY:-}
+      AVATARFORGE_GENERATED_DIR: /app/instance/generated
+      AVATARFORGE_JOB_DIR: /app/instance/jobs
+      AVATARFORGE_TRUST_PROXY_HEADERS: ${AVATARFORGE_TRUST_PROXY_HEADERS:-0}
+    ports:
+      - "${AVATARFORGE_PORT:-8000}:8000"
+    volumes:
+      - avatarforge_data:/app/instance
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    entrypoint: ["./docker/worker-entrypoint.sh"]
+    environment:
+      AVATARFORGE_ENV: production
+      AVATARFORGE_SECRET_KEY: ${AVATARFORGE_SECRET_KEY:-local-docker-change-me-before-production}
+      AVATARFORGE_SESSION_COOKIE_SECURE: ${AVATARFORGE_SESSION_COOKIE_SECURE:-0}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-avatarforge}:${POSTGRES_PASSWORD:-avatarforge-local-password}@db:5432/${POSTGRES_DB:-avatarforge}
+      AVATARFORGE_JOB_BACKEND: rq
+      REDIS_URL: redis://redis:6379/0
+      AVATARFORGE_RQ_QUEUE: avatarforge
+      AVATARFORGE_AI_PROVIDER: ${AVATARFORGE_AI_PROVIDER:-mock}
+      FAL_KEY: ${FAL_KEY:-}
+      AVATARFORGE_GENERATED_DIR: /app/instance/generated
+      AVATARFORGE_JOB_DIR: /app/instance/jobs
+    volumes:
+      - avatarforge_data:/app/instance
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  avatarforge_data:
