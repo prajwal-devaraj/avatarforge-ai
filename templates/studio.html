@@ -14,7 +14,7 @@
 </head>
 <body class="studio-page">
     <header class="studio-header">
-        <a class="brand" href="{{ url_for('index') }}" aria-label="Back to AvatarForge AI home">
+        <a class="brand" href="{{ url_for('pages.index') }}" aria-label="Back to AvatarForge AI home">
             <span class="brand-mark" aria-hidden="true">AF</span>
             <span class="brand-name">AvatarForge <strong>AI</strong></span>
         </a>
@@ -22,7 +22,7 @@
             <span class="workspace-dot"></span>
             <span>Avatar Studio</span>
         </div>
-        <a class="studio-home-link" href="{{ url_for('index') }}">Back to home</a>
+        <a class="studio-home-link" href="{{ url_for('pages.index') }}">Back to home</a>
     </header>
 
     <main class="studio-shell">
@@ -185,3 +185,4 @@
     <script src="{{ url_for('static', filename='js/studio.js') }}"></script>
 </body>
 </html>
+
