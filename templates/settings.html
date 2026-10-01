@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Settings — AvatarForge AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+</head>
+<body class="history-page">
+<header class="history-header"><div class="shell history-nav"><a class="brand" href="{{ url_for('pages.index') }}"><span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span></a><div class="history-actions"><a href="{{ url_for('billing.billing_dashboard') }}">Billing & usage</a><a href="{{ url_for('account.generations') }}">Generations</a></div></div></header>
+<main class="shell history-shell settings-shell">
+  <div class="history-heading"><div><span class="kicker">Account</span><h1>Settings</h1></div><p>Manage your sign-in email and password from one place.</p></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="form-alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  <div class="settings-grid">
+    <section class="settings-card"><h2>Profile</h2><form class="account-form" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="profile"><label>Email<input type="email" name="email" value="{{ current_user.email }}" required></label><button class="account-primary" type="submit">Update email</button></form></section>
+    <section class="settings-card"><h2>Password</h2><form class="account-form" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="password"><label>Current password<input type="password" name="current_password" required></label><label>New password<input type="password" name="new_password" minlength="8" required></label><button class="account-primary" type="submit">Update password</button></form></section>
+  </div>
+</main>
+</body></html>

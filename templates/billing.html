@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing & Usage — AvatarForge AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+</head>
+<body class="history-page">
+<header class="history-header"><div class="shell history-nav">
+  <a class="brand" href="{{ url_for('pages.index') }}"><span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span></a>
+  <div class="history-actions"><a href="{{ url_for('pages.studio') }}">Create avatar</a><a href="{{ url_for('account.generations') }}">Generations</a><a href="{{ url_for('billing.account_settings') }}">Settings</a></div>
+</div></header>
+<main class="shell history-shell">
+  <div class="history-heading"><div><span class="kicker">Account</span><h1>Billing & usage</h1></div><p>Track your monthly generation capacity and manage your AvatarForge plan.</p></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="form-alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  <section class="usage-grid">
+    <article class="usage-card"><span>Current plan</span><strong>{{ usage.plan.name }}</strong><small>{{ usage.period }}</small></article>
+    <article class="usage-card"><span>Generations used</span><strong>{{ usage.generation_used }}</strong><small>of {{ usage.generation_quota }}</small></article>
+    <article class="usage-card"><span>Remaining</span><strong>{{ usage.generation_remaining }}</strong><small>this month</small></article>
+    <article class="usage-card"><span>API requests</span><strong>{{ usage.api_requests }}</strong><small>this month</small></article>
+  </section>
+  <div class="usage-meter"><span style="width: {{ [100, (usage.generation_used / usage.generation_quota * 100) if usage.generation_quota else 0]|min }}%"></span></div>
+  <section class="plan-grid">
+    {% for plan in plans %}
+    <article class="plan-card {% if subscription.plan_code == plan.code %}plan-current{% endif %}">
+      <div><span class="kicker">{{ plan.name }}</span><h2>{% if plan.price_monthly_cents %}${{ '%.0f'|format(plan.price_monthly_cents / 100) }}<small>/mo</small>{% else %}Free{% endif %}</h2></div>
+      <ul>{% for feature in plan.features %}<li>{{ feature }}</li>{% endfor %}</ul>
+      {% if subscription.plan_code == plan.code %}<span class="plan-active">Current plan</span>
+      {% elif plan.code != 'free' %}<form method="post" action="{{ url_for('billing.billing_checkout', plan_code=plan.code) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="account-primary" type="submit">Choose {{ plan.name }}</button></form>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% if subscription.provider == 'stripe' and subscription.provider_customer_id %}<form class="portal-form" method="post" action="{{ url_for('billing.billing_portal') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit">Open billing portal</button></form>{% endif %}
+  {% if billing_provider == 'mock' %}<p class="billing-note">Local billing is in mock mode. Paid plan buttons upgrade the local test account without charging a card.</p>{% endif %}
+</main>
+</body></html>

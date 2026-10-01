@@ -354,3 +354,7 @@ must live outside the function filesystem. The final deployment step will use a
 managed Postgres database, Redis-compatible rate limiting/queue infrastructure,
 and private object storage rather than local SQLite or local generated-image
 folders.
+
+## Step 14 — Billing, Plans, Usage & Account Settings
+
+AvatarForge includes a plan catalog (Free, Pro, Business), monthly usage dashboard, account settings, and a billing abstraction that defaults to safe local mock mode. Set `AVATARFORGE_BILLING_PROVIDER=stripe` plus the Stripe secret, webhook secret, price IDs, and public `AVATARFORGE_APP_BASE_URL` to enable hosted Stripe Checkout and Billing Portal flows. Stripe webhook events update the local subscription record. For Vercel, keep state in managed PostgreSQL and object storage; do not rely on the serverless filesystem for persistent data.

@@ -87,7 +87,12 @@ def increment_usage(api_key_id: str, *, generation: bool = False) -> ApiUsage:
 
 
 def generation_quota_remaining(api_key_id: str) -> tuple[int, int, int]:
-    quota = int(current_app.config.get("API_MONTHLY_GENERATION_QUOTA", 100))
+    record = current_app.extensions["db_session"].scalar(select(ApiKey).where(ApiKey.id == api_key_id))
+    if record is None:
+        quota = int(current_app.config.get("API_MONTHLY_GENERATION_QUOTA", 100))
+    else:
+        from services.billing_service import plan_limits_for_user
+        quota, _ = plan_limits_for_user(record.user_id)
     usage = usage_for_key(api_key_id)
     used = usage.generation_count if usage else 0
     return quota, used, max(0, quota - used)
@@ -114,6 +119,10 @@ def _memory_rate_limit(identity: str, limit: int) -> tuple[bool, int]:
 
 def check_rate_limit(identity: str) -> tuple[bool, int]:
     limit = int(current_app.config.get("API_RATE_LIMIT_PER_MINUTE", 30))
+    record = current_app.extensions["db_session"].scalar(select(ApiKey).where(ApiKey.id == identity))
+    if record is not None:
+        from services.billing_service import plan_limits_for_user
+        _, limit = plan_limits_for_user(record.user_id)
     if limit <= 0:
         return True, 0
 

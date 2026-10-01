@@ -64,3 +64,12 @@ Step 12 additions
 │   └── observability.py
 └── tests/
     └── test_storage_observability.py
+
+Step 14 additions:
+- routes/billing.py — billing dashboard, account settings, checkout/portal and webhook endpoints
+- services/billing_service.py — plan catalog, usage aggregation, mock/Stripe billing adapter
+- models/billing.py — subscription persistence
+- migrations/versions/0005_billing_subscriptions.py — billing schema migration
+- templates/billing.html — plan and monthly usage dashboard
+- templates/settings.html — account email/password settings
+- tests/test_billing_account.py — billing and settings coverage

@@ -36,4 +36,3 @@ def sign_in_user(user_id: str) -> None:
 
 def sign_out_user() -> None:
     session.clear()
-

@@ -17,6 +17,8 @@
             <a class="brand" href="{{ url_for('pages.index') }}"><span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span></a>
             <div class="history-actions">
                 <a href="{{ url_for('pages.studio') }}">Create avatar</a>
+                <a href="{{ url_for('billing.billing_dashboard') }}">Billing</a>
+                <a href="{{ url_for('billing.account_settings') }}">Settings</a>
                 <span>{{ current_user.email }}</span>
                 <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit">Sign out</button></form>
             </div>
