@@ -51,6 +51,18 @@ class Config:
         "AVATARFORGE_JOB_DIR", str(INSTANCE_DIR / "jobs")
     )
     TRUST_PROXY_HEADERS = env_bool("AVATARFORGE_TRUST_PROXY_HEADERS", False)
+    STORAGE_BACKEND = os.environ.get("AVATARFORGE_STORAGE_BACKEND", "local")
+    S3_BUCKET = os.environ.get("AVATARFORGE_S3_BUCKET", "")
+    S3_PREFIX = os.environ.get("AVATARFORGE_S3_PREFIX", "avatarforge")
+    S3_REGION = os.environ.get("AVATARFORGE_S3_REGION", "")
+    S3_ENDPOINT_URL = os.environ.get("AVATARFORGE_S3_ENDPOINT_URL", "")
+    S3_ACCESS_KEY_ID = os.environ.get("AVATARFORGE_S3_ACCESS_KEY_ID", "")
+    S3_SECRET_ACCESS_KEY = os.environ.get("AVATARFORGE_S3_SECRET_ACCESS_KEY", "")
+    S3_SERVER_SIDE_ENCRYPTION = os.environ.get("AVATARFORGE_S3_SSE", "AES256")
+    JOB_MAX_ATTEMPTS = int(os.environ.get("AVATARFORGE_JOB_MAX_ATTEMPTS", "2"))
+    JOB_RETENTION_HOURS = int(os.environ.get("AVATARFORGE_JOB_RETENTION_HOURS", "24"))
+    JSON_LOGS = env_bool("AVATARFORGE_JSON_LOGS", False)
+    LOG_LEVEL = os.environ.get("AVATARFORGE_LOG_LEVEL", "INFO")
 
 
 class DevelopmentConfig(Config):

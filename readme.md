@@ -18,7 +18,10 @@ AvatarForge AI is an evolving avatar and digital-identity platform combining a p
 - Job progress polling from the Avatar Studio frontend
 - Temporary source-image staging for background jobs; source files are deleted after processing
 - Access-token protection for anonymous job status/results and account ownership for signed-in users
-- Automated tests for API, auth, persistence, AI-provider abstraction, image processing, and job lifecycle
+- Automated tests for API, auth, persistence, AI-provider abstraction, image processing, job lifecycle, storage, and observability
+- Local or S3-compatible private object storage with lifecycle cleanup
+- Automatic generation retries with configurable attempt limits
+- Prometheus metrics, readiness checks, request correlation IDs, and optional JSON logs
 
 ## Step 10 architecture
 
@@ -208,7 +211,7 @@ Python, Flask, SQLAlchemy 2, Alembic, PostgreSQL/Psycopg 3, SQLite, OpenCV, Pill
 
 ## Next milestones
 
-Cloud object storage, job expiry/cleanup policies, retries and dead-letter handling, observability, rate limiting, production deployment, and billing/usage controls.
+Rate limiting, abuse protection, CI/CD deployment pipelines, admin analytics, billing/usage controls, and production cloud deployment.
 
 ## Production runtime with Docker
 
@@ -250,3 +253,84 @@ gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 180 wsgi:app
 ```
 
 For RQ-backed generation jobs, run a separate worker process connected to the same Redis instance and shared generation storage.
+
+## Step 12: storage lifecycle and observability
+
+Step 12 introduces a storage abstraction, retry policy, maintenance utilities, readiness checks, structured logging, and Prometheus-compatible metrics.
+
+### Storage backends
+
+Local filesystem storage remains the zero-setup default:
+
+```powershell
+$env:AVATARFORGE_STORAGE_BACKEND="local"
+python app.py
+```
+
+For S3 or an S3-compatible object store:
+
+```text
+AVATARFORGE_STORAGE_BACKEND=s3
+AVATARFORGE_S3_BUCKET=your-private-bucket
+AVATARFORGE_S3_PREFIX=avatarforge
+AVATARFORGE_S3_REGION=us-east-1
+AVATARFORGE_S3_ENDPOINT_URL=
+AVATARFORGE_S3_ACCESS_KEY_ID=...
+AVATARFORGE_S3_SECRET_ACCESS_KEY=...
+```
+
+Generated objects are private and are read through authenticated/token-protected AvatarForge routes rather than exposed as public bucket URLs. Server-side encryption defaults to `AES256` for S3 uploads.
+
+### Retry policy
+
+Generation jobs track `attempt_count` and `max_attempts`. The default policy allows two total attempts:
+
+```text
+AVATARFORGE_JOB_MAX_ATTEMPTS=2
+```
+
+Temporary source input is retained between retry attempts and removed after the job reaches a terminal state.
+
+### Lifecycle cleanup
+
+Terminal job records and job-only result artifacts can be cleaned after a configurable retention window. Saved account history is not deleted by this maintenance command.
+
+```powershell
+python maintenance.py cleanup-jobs
+python maintenance.py cleanup-jobs --older-than-hours 48
+```
+
+Default retention:
+
+```text
+AVATARFORGE_JOB_RETENTION_HOURS=24
+```
+
+### Health, readiness, and metrics
+
+```text
+GET /api/v1/health
+GET /api/v1/ready
+GET /api/v1/metrics
+```
+
+`/health` confirms the web process is alive. `/ready` checks database and storage readiness. `/metrics` exposes Prometheus-format request, latency, generation, retry, and active-job metrics.
+
+### Structured logs
+
+Enable JSON logs in production:
+
+```text
+AVATARFORGE_JSON_LOGS=1
+AVATARFORGE_LOG_LEVEL=INFO
+```
+
+Request IDs are included in structured request-context logs and returned through `X-Request-ID`.
+
+### Development database compatibility
+
+Fresh development databases are created with the Step 12 retry fields. Existing local SQLite databases created by earlier AvatarForge steps are automatically upgraded with the two additive retry columns during development startup. Production deployments should continue to use Alembic:
+
+```powershell
+python -m alembic upgrade head
+```

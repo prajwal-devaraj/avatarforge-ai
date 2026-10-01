@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from flask import current_app
 from sqlalchemy import select
 
 from models import Generation
+from services.storage_service import store_bytes
 
 
 def save_generation(*, user_id: str, result, processing_ms: float) -> Generation:
@@ -20,14 +19,16 @@ def save_generation(*, user_id: str, result, processing_ms: float) -> Generation
         processing_ms=processing_ms,
     )
 
-    user_dir = Path(current_app.config["GENERATED_STORAGE_DIR"]) / user_id
-    user_dir.mkdir(parents=True, exist_ok=True)
-    file_path = user_dir / f"{generation.id}.jpg"
-    file_path.write_bytes(result.image_stream.getvalue())
-    generation.output_path = str(file_path)
-
     db = current_app.extensions["db_session"]
     db.add(generation)
+    db.flush()
+
+    generation.output_path = store_bytes(
+        category="generations",
+        key=f"{user_id}/{generation.id}.jpg",
+        data=result.image_stream.getvalue(),
+        mime_type="image/jpeg",
+    )
     db.commit()
     return generation
 

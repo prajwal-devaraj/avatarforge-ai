@@ -14,6 +14,8 @@ from models import GenerationJob
 from services.generation_service import generate_avatar
 from services.history_service import save_generation
 from services.image_service import STYLE_LABELS
+from services.storage_service import store_bytes
+from utils.observability import ACTIVE_JOBS, GENERATION_JOBS, GENERATION_LATENCY, JOB_RETRIES
 from utils.validators import clamp_intensity, validate_upload
 
 TERMINAL_STATUSES = {"completed", "failed"}
@@ -46,6 +48,7 @@ def create_generation_job(*, file_storage, raw_style, raw_intensity, raw_engine,
         input_path="",
         input_name=file_storage.filename or "upload.jpg",
         input_mime_type=file_storage.mimetype or "application/octet-stream",
+        max_attempts=max(1, int(current_app.config.get("JOB_MAX_ATTEMPTS", 2))),
     )
 
     db = current_app.extensions["db_session"]
@@ -83,10 +86,12 @@ def process_generation_job(job_id: str) -> None:
         return
 
     started = time.perf_counter()
+    job.attempt_count = int(job.attempt_count or 0) + 1
     job.status = "processing"
     job.progress = 15
     job.started_at = datetime.now(timezone.utc)
     db.commit()
+    ACTIVE_JOBS.inc()
 
     try:
         input_path = Path(job.input_path)
@@ -107,8 +112,12 @@ def process_generation_job(job_id: str) -> None:
         job.progress = 80
         db.commit()
 
-        output_path = Path(current_app.config["JOB_STORAGE_DIR"]) / job.id / "result.jpg"
-        output_path.write_bytes(result.image_stream.getvalue())
+        job.output_path = store_bytes(
+            category="jobs",
+            key=f"{job.id}/result.jpg",
+            data=result.image_stream.getvalue(),
+            mime_type="image/jpeg",
+        )
         elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
 
         generation_id = None
@@ -116,7 +125,6 @@ def process_generation_job(job_id: str) -> None:
             saved = save_generation(user_id=job.user_id, result=result, processing_ms=elapsed_ms)
             generation_id = saved.id
 
-        job.output_path = str(output_path)
         job.output_mime_type = "image/jpeg"
         job.download_name = result.download_name
         job.provider = result.provider
@@ -126,15 +134,28 @@ def process_generation_job(job_id: str) -> None:
         job.progress = 100
         job.completed_at = datetime.now(timezone.utc)
         db.commit()
+        GENERATION_JOBS.labels("completed", job.engine, job.provider or "classic").inc()
+        GENERATION_LATENCY.labels(job.engine, job.provider or "classic").observe(elapsed_ms / 1000.0)
     except Exception as exc:
-        current_app.logger.exception("Generation job %s failed", job_id)
-        job.status = "failed"
-        job.progress = 100
+        current_app.logger.exception("Generation job %s failed on attempt %s", job_id, job.attempt_count)
         job.error_message = str(exc)[:1000] or "Generation failed."
-        job.completed_at = datetime.now(timezone.utc)
-        db.commit()
+        if int(job.attempt_count or 0) < int(job.max_attempts or 1):
+            job.status = "queued"
+            job.progress = 0
+            db.commit()
+            JOB_RETRIES.labels(job.engine).inc()
+            from services.queue_service import enqueue_generation_job
+            enqueue_generation_job(job.id)
+        else:
+            job.status = "failed"
+            job.progress = 100
+            job.completed_at = datetime.now(timezone.utc)
+            db.commit()
+            GENERATION_JOBS.labels("failed", job.engine, job.provider or "unknown").inc()
     finally:
-        try:
-            Path(job.input_path).unlink(missing_ok=True)
-        except OSError:
-            current_app.logger.warning("Could not delete temporary job input for %s", job_id)
+        ACTIVE_JOBS.dec()
+        if job.status in TERMINAL_STATUSES:
+            try:
+                Path(job.input_path).unlink(missing_ok=True)
+            except OSError:
+                current_app.logger.warning("Could not delete temporary job input for %s", job_id)

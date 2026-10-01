@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from flask import Flask
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from models import Base
@@ -24,6 +24,15 @@ def init_database(app: Flask) -> None:
 
     if app.config.get("AUTO_CREATE_DB", True):
         Base.metadata.create_all(engine)
+        # Development compatibility for SQLite databases created before retry metadata existed.
+        # Production deployments use Alembic migrations instead.
+        if database_url.startswith("sqlite:///"):
+            with engine.begin() as connection:
+                columns = {row[1] for row in connection.execute(text("PRAGMA table_info(generation_jobs)"))}
+                if columns and "attempt_count" not in columns:
+                    connection.execute(text("ALTER TABLE generation_jobs ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 0"))
+                if columns and "max_attempts" not in columns:
+                    connection.execute(text("ALTER TABLE generation_jobs ADD COLUMN max_attempts INTEGER NOT NULL DEFAULT 2"))
     app.extensions["db_engine"] = engine
     app.extensions["db_session"] = session_factory
 

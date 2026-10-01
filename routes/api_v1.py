@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import base64
 import time
+from io import BytesIO
 
-from pathlib import Path
-
-from flask import Blueprint, current_app, g, request, send_file, url_for
+from flask import Blueprint, Response, current_app, g, request, send_file, url_for
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from sqlalchemy import text
 
 from services.generation_service import generate_avatar
 from services.history_service import save_generation
 from services.job_service import can_access_job, create_generation_job, get_job
 from services.queue_service import enqueue_generation_job
 from services.image_service import STYLE_LABELS
+from services.storage_service import location_exists, read_bytes, storage_ready
 from utils.api_response import api_error, api_success
 
 api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
@@ -25,8 +27,35 @@ def health():
             "status": "ok",
             "version": "v1",
             "queue_backend": current_app.config.get("JOB_BACKEND", "thread"),
+            "storage_backend": current_app.config.get("STORAGE_BACKEND", "local"),
         }
     )
+
+
+@api_v1_bp.get("/ready")
+def readiness():
+    checks = {}
+    ready = True
+
+    try:
+        db = current_app.extensions["db_session"]
+        db.execute(text("SELECT 1"))
+        checks["database"] = "ok"
+    except Exception as exc:
+        current_app.logger.exception("Database readiness check failed")
+        checks["database"] = str(exc)
+        ready = False
+
+    storage_ok, storage_detail = storage_ready()
+    checks["storage"] = storage_detail
+    ready = ready and storage_ok
+
+    return api_success({"status": "ready" if ready else "not_ready", "checks": checks}, status=200 if ready else 503)
+
+
+@api_v1_bp.get("/metrics")
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 @api_v1_bp.get("/styles")
@@ -167,6 +196,8 @@ def job_status_v1(job_id):
         "engine": job.engine,
         "provider": job.provider,
         "processing_ms": job.processing_ms,
+        "attempt_count": job.attempt_count,
+        "max_attempts": job.max_attempts,
         "saved": bool(job.generation_id),
         "error": job.error_message if job.status == "failed" else None,
     }
@@ -192,11 +223,10 @@ def job_image_v1(job_id):
     if job.status != "completed" or not job.output_path:
         return api_error("Generation result is not ready yet.", code="job_not_ready", status=409)
 
-    path = Path(job.output_path)
-    if not path.is_file():
+    if not location_exists(job.output_path):
         return api_error("Generation result is unavailable.", code="result_missing", status=404)
     return send_file(
-        path,
+        BytesIO(read_bytes(job.output_path)),
         mimetype=job.output_mime_type or "image/jpeg",
         as_attachment=False,
         download_name=job.download_name or "avatarforge-result.jpg",

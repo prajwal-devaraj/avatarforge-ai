@@ -20,6 +20,8 @@ class GenerationJob(Base):
 
     status: Mapped[str] = mapped_column(String(24), default="queued", index=True, nullable=False)
     progress: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
 
     style: Mapped[str] = mapped_column(String(64), nullable=False)
     intensity: Mapped[int] = mapped_column(Integer, nullable=False)

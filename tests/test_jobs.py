@@ -96,3 +96,44 @@ def test_job_ai_mode_uses_provider_metadata(tmp_path):
     assert status["status"] == "completed"
     assert status["engine"] == "ai"
     assert status["provider"] == "mock"
+
+
+def test_job_retries_once_then_completes(tmp_path, monkeypatch):
+    class TempConfig(JobTestConfig):
+        DATABASE_URL = f"sqlite:///{(tmp_path / 'retry-jobs.db').as_posix()}"
+        GENERATED_STORAGE_DIR = str(tmp_path / "generated")
+        JOB_STORAGE_DIR = str(tmp_path / "jobs")
+        JOB_MAX_ATTEMPTS = 2
+
+    import services.job_service as job_service
+
+    original = job_service.generate_avatar
+    calls = {"count": 0}
+
+    def flaky_generate(*args, **kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise RuntimeError("temporary provider failure")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(job_service, "generate_avatar", flaky_generate)
+    client = create_app(TempConfig).test_client()
+    created = client.post(
+        "/api/v1/jobs",
+        data={
+            "file": (make_image_file(), "avatar.png"),
+            "style": "cartoon",
+            "intensity": "70",
+            "engine": "classic",
+        },
+        content_type="multipart/form-data",
+    )
+    job = created.get_json()["data"]["job"]
+    status = client.get(
+        f"/api/v1/jobs/{job['id']}",
+        headers={"X-Job-Token": job["access_token"]},
+    ).get_json()["data"]["job"]
+    assert status["status"] == "completed"
+    assert status["attempt_count"] == 2
+    assert status["max_attempts"] == 2
+    assert calls["count"] == 2

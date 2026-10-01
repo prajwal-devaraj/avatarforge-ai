@@ -53,3 +53,14 @@ avatarforge-ai/
 │   └── studio.html
 ├── tests/
 └── utils/
+
+Step 12 additions
+├── maintenance.py
+├── migrations/versions/0003_job_retry_fields.py
+├── services/
+│   ├── maintenance_service.py
+│   └── storage_service.py
+├── utils/
+│   └── observability.py
+└── tests/
+    └── test_storage_observability.py
