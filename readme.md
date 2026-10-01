@@ -89,3 +89,20 @@ AvatarForge AI is being designed as more than a filter utility. The long-term pl
 ---
 
 Built by **Prajwal Devaraj**.
+
+## Backend architecture
+
+Step 5 reorganizes the application around clear responsibilities while preserving the existing Flask routes and UI:
+
+- `routes/` owns HTTP/page routing only.
+- `services/` owns image decoding, style engines, and generation orchestration.
+- `utils/` contains small reusable validation and image helpers.
+- `config.py` centralizes environment-aware Flask configuration.
+- `tests/` adds unit and route-level coverage for core behavior.
+- `app.py` now uses an application factory, making testing and future deployment easier.
+
+Run the test suite with:
+
+```bash
+pytest -q
+```

@@ -1,15 +1,33 @@
 avatarforge-ai/
 ├── app.py
-├── requirements.txt
-├── .gitignore
-├── readme.md
+├── config.py
+├── routes/
+│   ├── __init__.py
+│   ├── api.py
+│   └── pages.py
+├── services/
+│   ├── __init__.py
+│   ├── generation_service.py
+│   └── image_service.py
+├── utils/
+│   ├── __init__.py
+│   ├── image_utils.py
+│   └── validators.py
+├── static/
+│   ├── css/
+│   │   ├── style.css
+│   │   └── studio.css
+│   └── js/
+│       ├── app.js
+│       └── studio.js
 ├── templates/
 │   ├── index.html
 │   └── studio.html
-└── static/
-    ├── css/
-    │   ├── style.css
-    │   └── studio.css
-    └── js/
-        ├── app.js
-        └── studio.js
+├── tests/
+│   ├── test_app.py
+│   ├── test_image_service.py
+│   └── test_validators.py
+├── .gitignore
+├── pytest.ini
+├── readme.md
+└── requirements.txt
