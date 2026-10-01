@@ -27,8 +27,10 @@ def create_app(config_object=None) -> Flask:
     app = Flask(__name__)
 
     if config_object is None:
-        environment = os.environ.get("AVATARFORGE_ENV", "development").lower()
-        config_object = ProductionConfig if environment == "production" else DevelopmentConfig
+        environment = os.environ.get("AVATARFORGE_ENV")
+        if not environment:
+            environment = "production" if os.environ.get("VERCEL") == "1" else "development"
+        config_object = ProductionConfig if environment.lower() == "production" else DevelopmentConfig
 
     app.config.from_object(config_object)
 
@@ -40,7 +42,8 @@ def create_app(config_object=None) -> Flask:
 
     init_database(app)
     configure_json_logging(app)
-    Path(app.config["JOB_STORAGE_DIR"]).mkdir(parents=True, exist_ok=True)
+    if app.config.get("STORAGE_BACKEND", "local").lower() == "local":
+        Path(app.config["JOB_STORAGE_DIR"]).mkdir(parents=True, exist_ok=True)
 
     app.register_blueprint(pages_bp)
     app.register_blueprint(auth_bp)

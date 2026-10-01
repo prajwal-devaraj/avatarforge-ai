@@ -16,3 +16,4 @@ instance/
 *.db
 *.sqlite
 *.sqlite3
+.vercel/

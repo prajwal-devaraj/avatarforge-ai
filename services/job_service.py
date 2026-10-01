@@ -14,7 +14,7 @@ from models import GenerationJob
 from services.generation_service import generate_avatar
 from services.history_service import save_generation
 from services.image_service import STYLE_LABELS
-from services.storage_service import store_bytes
+from services.storage_service import delete_location, read_bytes, store_bytes
 from utils.observability import ACTIVE_JOBS, GENERATION_JOBS, GENERATION_LATENCY, JOB_RETRIES
 from utils.validators import clamp_intensity, validate_upload
 
@@ -55,12 +55,15 @@ def create_generation_job(*, file_storage, raw_style, raw_intensity, raw_engine,
     db.add(job)
     db.flush()
 
-    root = Path(current_app.config["JOB_STORAGE_DIR"]) / job.id
-    root.mkdir(parents=True, exist_ok=True)
     suffix = Path(job.input_name).suffix.lower() or ".bin"
-    input_path = root / f"input{suffix}"
-    file_storage.save(input_path)
-    job.input_path = str(input_path)
+    input_bytes = file_storage.read()
+    file_storage.stream.seek(0)
+    job.input_path = store_bytes(
+        category="jobs",
+        key=f"{job.id}/input{suffix}",
+        data=input_bytes,
+        mime_type=job.input_mime_type,
+    )
 
     db.commit()
     return job, token
@@ -94,20 +97,21 @@ def process_generation_job(job_id: str) -> None:
     ACTIVE_JOBS.inc()
 
     try:
-        input_path = Path(job.input_path)
-        with input_path.open("rb") as handle:
-            upload = FileStorage(
-                stream=handle,
-                filename=job.input_name,
-                content_type=job.input_mime_type,
-            )
-            result = generate_avatar(
-                upload,
-                job.style,
-                str(job.intensity),
-                job.engine,
-                job.prompt,
-            )
+        from io import BytesIO
+
+        input_bytes = read_bytes(job.input_path)
+        upload = FileStorage(
+            stream=BytesIO(input_bytes),
+            filename=job.input_name,
+            content_type=job.input_mime_type,
+        )
+        result = generate_avatar(
+            upload,
+            job.style,
+            str(job.intensity),
+            job.engine,
+            job.prompt,
+        )
 
         job.progress = 80
         db.commit()
@@ -155,7 +159,5 @@ def process_generation_job(job_id: str) -> None:
     finally:
         ACTIVE_JOBS.dec()
         if job.status in TERMINAL_STATUSES:
-            try:
-                Path(job.input_path).unlink(missing_ok=True)
-            except OSError:
+            if not delete_location(job.input_path):
                 current_app.logger.warning("Could not delete temporary job input for %s", job_id)

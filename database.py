@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import Flask
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from models import Base
 
@@ -27,7 +28,10 @@ def init_database(app: Flask) -> None:
 
     engine_options = {"future": True, "pool_pre_ping": True}
     if database_url.startswith("postgresql"):
-        engine_options.update({"pool_recycle": 300, "pool_size": 5, "max_overflow": 10})
+        if str(app.config.get("DB_POOL_MODE", "pooled")).lower() == "serverless":
+            engine_options["poolclass"] = NullPool
+        else:
+            engine_options.update({"pool_recycle": 300, "pool_size": 5, "max_overflow": 10})
     engine = create_engine(database_url, **engine_options)
     session_factory = scoped_session(
         sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
@@ -56,4 +60,3 @@ def init_database(app: Flask) -> None:
         if error is not None:
             session_factory.rollback()
         session_factory.remove()
-

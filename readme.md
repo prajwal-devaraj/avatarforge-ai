@@ -366,3 +366,7 @@ AvatarForge supports signed, time-limited email verification and password-reset 
 New security headers include a restrictive Content Security Policy and HSTS on secure production requests. Database engines use connection health checks, PostgreSQL pool recycling, and request teardown rollback on failures.
 
 For local development keep `AVATARFORGE_EMAIL_BACKEND=console` and `AVATARFORGE_EMAIL_VERIFICATION_REQUIRED=0`. For production, prefer `AVATARFORGE_EMAIL_BACKEND=resend` with `RESEND_API_KEY` on Vercel (SMTP remains available), set `AVATARFORGE_EMAIL_VERIFICATION_REQUIRED=1`, and use PostgreSQL through `DATABASE_URL`.
+
+## Vercel deployment
+
+Step 16 adds a Vercel Python entrypoint (`api/index.py`), `vercel.json`, serverless PostgreSQL pooling, durable job-input storage through the storage abstraction, and automatic Vercel production defaults. See `VERCEL_DEPLOYMENT.md` for the deployment checklist and required environment variables.

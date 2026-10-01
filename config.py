@@ -3,7 +3,8 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-INSTANCE_DIR = BASE_DIR / "instance"
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+INSTANCE_DIR = Path("/tmp/avatarforge") if IS_VERCEL else BASE_DIR / "instance"
 DEFAULT_SQLITE_PATH = INSTANCE_DIR / "avatarforge.db"
 
 
@@ -43,15 +44,15 @@ class Config:
     AI_API_KEY = os.environ.get("AVATARFORGE_AI_API_KEY", "")
     AI_TIMEOUT = int(os.environ.get("AVATARFORGE_AI_TIMEOUT", "120"))
     FAL_KEY = os.environ.get("FAL_KEY", "")
-    JOB_BACKEND = os.environ.get("AVATARFORGE_JOB_BACKEND", "thread")
+    JOB_BACKEND = os.environ.get("AVATARFORGE_JOB_BACKEND", "inline" if IS_VERCEL else "thread")
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
     RQ_QUEUE = os.environ.get("AVATARFORGE_RQ_QUEUE", "avatarforge")
     JOB_TIMEOUT = int(os.environ.get("AVATARFORGE_JOB_TIMEOUT", "300"))
     JOB_STORAGE_DIR = os.environ.get(
         "AVATARFORGE_JOB_DIR", str(INSTANCE_DIR / "jobs")
     )
-    TRUST_PROXY_HEADERS = env_bool("AVATARFORGE_TRUST_PROXY_HEADERS", False)
-    STORAGE_BACKEND = os.environ.get("AVATARFORGE_STORAGE_BACKEND", "local")
+    TRUST_PROXY_HEADERS = env_bool("AVATARFORGE_TRUST_PROXY_HEADERS", IS_VERCEL)
+    STORAGE_BACKEND = os.environ.get("AVATARFORGE_STORAGE_BACKEND", "s3" if IS_VERCEL else "local")
     S3_BUCKET = os.environ.get("AVATARFORGE_S3_BUCKET", "")
     S3_PREFIX = os.environ.get("AVATARFORGE_S3_PREFIX", "avatarforge")
     S3_REGION = os.environ.get("AVATARFORGE_S3_REGION", "")
@@ -61,11 +62,11 @@ class Config:
     S3_SERVER_SIDE_ENCRYPTION = os.environ.get("AVATARFORGE_S3_SSE", "AES256")
     JOB_MAX_ATTEMPTS = int(os.environ.get("AVATARFORGE_JOB_MAX_ATTEMPTS", "2"))
     JOB_RETENTION_HOURS = int(os.environ.get("AVATARFORGE_JOB_RETENTION_HOURS", "24"))
-    JSON_LOGS = env_bool("AVATARFORGE_JSON_LOGS", False)
+    JSON_LOGS = env_bool("AVATARFORGE_JSON_LOGS", IS_VERCEL)
     LOG_LEVEL = os.environ.get("AVATARFORGE_LOG_LEVEL", "INFO")
     API_MONTHLY_GENERATION_QUOTA = int(os.environ.get("AVATARFORGE_API_MONTHLY_GENERATION_QUOTA", "25"))
     API_RATE_LIMIT_PER_MINUTE = int(os.environ.get("AVATARFORGE_API_RATE_LIMIT_PER_MINUTE", "30"))
-    RATE_LIMIT_BACKEND = os.environ.get("AVATARFORGE_RATE_LIMIT_BACKEND", "memory")
+    RATE_LIMIT_BACKEND = os.environ.get("AVATARFORGE_RATE_LIMIT_BACKEND", "redis" if IS_VERCEL and os.environ.get("REDIS_URL") else "memory")
     BILLING_PROVIDER = os.environ.get("AVATARFORGE_BILLING_PROVIDER", "mock")
     APP_BASE_URL = os.environ.get("AVATARFORGE_APP_BASE_URL", "http://127.0.0.1:5000")
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
@@ -90,6 +91,8 @@ class Config:
     EMAIL_VERIFICATION_TOKEN_MAX_AGE = int(os.environ.get("AVATARFORGE_EMAIL_VERIFICATION_TOKEN_MAX_AGE", "86400"))
     PASSWORD_RESET_TOKEN_MAX_AGE = int(os.environ.get("AVATARFORGE_PASSWORD_RESET_TOKEN_MAX_AGE", "3600"))
     REQUIRE_POSTGRES_IN_PRODUCTION = env_bool("AVATARFORGE_REQUIRE_POSTGRES_IN_PRODUCTION", True)
+    DB_POOL_MODE = os.environ.get("AVATARFORGE_DB_POOL_MODE", "serverless" if IS_VERCEL else "pooled")
+    IS_VERCEL = IS_VERCEL
 
 
 class DevelopmentConfig(Config):
