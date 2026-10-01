@@ -158,21 +158,49 @@ dropZone.addEventListener('drop', (event) => {
     acceptFile(file);
 });
 
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJob(jobId, token) {
+    const response = await fetch(`/api/v1/jobs/${jobId}`, {
+        headers: { 'X-Job-Token': token },
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success) {
+        throw new Error(payload?.error?.message || 'Could not read generation status.');
+    }
+    return payload.data.job;
+}
+
+async function fetchJobImage(jobId, token) {
+    const response = await fetch(`/api/v1/jobs/${jobId}/image`, {
+        headers: { 'X-Job-Token': token },
+    });
+    if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error?.message || 'Could not load generated image.');
+    }
+    return response.blob();
+}
+
 async function generateAvatar() {
     const file = fileInput.files[0];
     if (!file) return;
 
     const style = selectedStyle();
     const intensity = intensityInput.value;
+    const overlayDetail = generationOverlay.querySelector('span');
 
     generateButton.classList.add('loading');
     generateButton.disabled = true;
     generationOverlay.hidden = false;
     resultActions.hidden = true;
     message.textContent = '';
-    setStatus('Processing', 'processing');
-    previewTitle.textContent = `Generating ${style.label}`;
+    setStatus('Queued', 'processing');
+    previewTitle.textContent = `Queuing ${style.label}`;
     resultStyleBadge.textContent = style.label;
+    if (overlayDetail) overlayDetail.textContent = 'Creating background job…';
 
     const body = new FormData();
     body.append('file', file);
@@ -184,32 +212,52 @@ async function generateAvatar() {
 
     try {
         const startedAt = performance.now();
-        const response = await fetch('/api/v1/generate', { method: 'POST', body });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || !payload.success) {
-            throw new Error(payload?.error?.message || 'Generation failed. Please try again.');
+        const createResponse = await fetch('/api/v1/jobs', { method: 'POST', body });
+        const createPayload = await createResponse.json().catch(() => ({}));
+        if (!createResponse.ok || !createPayload.success) {
+            throw new Error(createPayload?.error?.message || 'Could not queue generation.');
         }
 
-        const elapsed = Math.max(0.1, (performance.now() - startedAt) / 1000).toFixed(1);
-        const image = payload.data.image;
-        const binary = atob(image.base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-        const blob = new Blob([bytes], { type: image.mime_type });
+        const jobInfo = createPayload.data.job;
+        const jobId = jobInfo.id;
+        const token = jobInfo.access_token;
+        const maxPolls = 150;
+        let job = jobInfo;
 
+        for (let attempt = 0; attempt < maxPolls; attempt += 1) {
+            job = await fetchJob(jobId, token);
+            const progress = Number(job.progress || 0);
+            setStatus(`${job.status === 'queued' ? 'Queued' : 'Processing'} ${progress}%`, 'processing');
+            previewTitle.textContent = `${style.label} · ${job.status}`;
+            if (overlayDetail) overlayDetail.textContent = `${job.status === 'queued' ? 'Waiting for worker' : 'Processing image'} · ${progress}%`;
+
+            if (job.status === 'completed') break;
+            if (job.status === 'failed') {
+                throw new Error(job.error || 'Generation failed. Please try again.');
+            }
+            await sleep(800);
+        }
+
+        if (job.status !== 'completed') {
+            throw new Error('Generation is taking longer than expected. Please try again shortly.');
+        }
+
+        const blob = await fetchJobImage(jobId, token);
         if (generatedObjectUrl) URL.revokeObjectURL(generatedObjectUrl);
         generatedObjectUrl = URL.createObjectURL(blob);
         generatedPreview.src = generatedObjectUrl;
         downloadButton.href = generatedObjectUrl;
-        downloadButton.download = image.download_name;
-        const serverMs = payload.meta?.processing_ms;
-        const serverLabel = Number.isFinite(serverMs) ? ` · ${serverMs}ms server` : '';
-        const savedLabel = payload.data.generation?.saved ? ' · Saved to history' : '';
-        const engineLabel = payload.data.generation?.engine === 'ai' ? `AI/${payload.data.generation?.provider || 'provider'}` : 'Classic';
+        downloadButton.download = job.download_name || `avatarforge-${style.value}.jpg`;
+
+        const elapsed = Math.max(0.1, (performance.now() - startedAt) / 1000).toFixed(1);
+        const serverLabel = Number.isFinite(job.processing_ms) ? ` · ${job.processing_ms}ms worker` : '';
+        const savedLabel = job.saved ? ' · Saved to history' : '';
+        const engineLabel = job.engine === 'ai' ? `AI/${job.provider || 'provider'}` : 'Classic';
         generationMeta.textContent = `${style.label} · ${engineLabel} · ${intensity}% intensity · ${elapsed}s${serverLabel}${savedLabel}`;
         resultActions.hidden = false;
         setStatus('Complete', 'complete');
         previewTitle.textContent = `${style.label} complete`;
+        if (overlayDetail) overlayDetail.textContent = 'Generation complete';
     } catch (error) {
         message.textContent = error.message;
         setStatus('Error');

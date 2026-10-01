@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 
 from flask import Flask, g, request, session
 from sqlalchemy import select
@@ -26,6 +27,7 @@ def create_app(config_object=None) -> Flask:
 
     app.config.from_object(config_object)
     init_database(app)
+    Path(app.config["JOB_STORAGE_DIR"]).mkdir(parents=True, exist_ok=True)
 
     app.register_blueprint(pages_bp)
     app.register_blueprint(auth_bp)

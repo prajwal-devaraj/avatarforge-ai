@@ -36,6 +36,13 @@ class Config:
     AI_API_KEY = os.environ.get("AVATARFORGE_AI_API_KEY", "")
     AI_TIMEOUT = int(os.environ.get("AVATARFORGE_AI_TIMEOUT", "120"))
     FAL_KEY = os.environ.get("FAL_KEY", "")
+    JOB_BACKEND = os.environ.get("AVATARFORGE_JOB_BACKEND", "thread")
+    REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    RQ_QUEUE = os.environ.get("AVATARFORGE_RQ_QUEUE", "avatarforge")
+    JOB_TIMEOUT = int(os.environ.get("AVATARFORGE_JOB_TIMEOUT", "300"))
+    JOB_STORAGE_DIR = os.environ.get(
+        "AVATARFORGE_JOB_DIR", str(INSTANCE_DIR / "jobs")
+    )
 
 
 class DevelopmentConfig(Config):

@@ -1,67 +1,57 @@
 avatarforge-ai/
 ├── app.py                         # Flask application factory and request/user context
-├── config.py                      # Environment, database, session and storage configuration
+├── config.py                      # Environment, database, AI and queue configuration
 ├── database.py                    # SQLAlchemy engine + scoped session initialization
+├── worker.py                      # Redis/RQ worker entry point
 ├── alembic.ini                    # Database migration configuration
 ├── .env.example                   # Environment variable reference
 ├── models/
 │   ├── base.py                    # SQLAlchemy declarative base
-│   ├── user.py                    # User account + password hashing model
-│   └── generation.py              # Saved generation metadata model
+│   ├── user.py                    # User account model
+│   ├── generation.py              # Saved generation metadata
+│   └── job.py                     # Asynchronous generation job state
 ├── routes/
 │   ├── pages.py                   # Landing page and studio routes
 │   ├── auth.py                    # Register, login and logout routes
 │   ├── account.py                 # Private history + generated-image routes
 │   ├── api.py                     # Legacy compatibility API
-│   └── api_v1.py                  # Versioned API contracts
+│   └── api_v1.py                  # Versioned sync + async API contracts
 ├── services/
-│   ├── image_service.py           # Computer-vision style engine
+│   ├── ai/                        # Mock, fal.ai and generic remote providers
 │   ├── generation_service.py      # Generation orchestration
-│   └── history_service.py         # Private output + metadata persistence
+│   ├── history_service.py         # Private output persistence
+│   ├── image_service.py           # Computer-vision styles
+│   ├── job_service.py             # Job lifecycle + temporary/output files
+│   ├── queue_service.py           # Inline, local-thread, and Redis/RQ dispatch
+│   └── prompt_service.py          # AI prompt construction
 ├── utils/
-│   ├── api_response.py            # Standardized API response helpers
-│   ├── auth.py                    # Session auth helpers + login protection
-│   ├── security.py                # CSRF token helpers
+│   ├── api_response.py
+│   ├── auth.py
+│   ├── security.py
 │   ├── image_utils.py
 │   └── validators.py
 ├── templates/
 │   ├── index.html
 │   ├── studio.html
-│   ├── generations.html           # Private saved-generation gallery
+│   ├── generations.html
 │   └── auth/
-│       ├── login.html
-│       └── register.html
 ├── static/
 │   ├── css/
-│   │   ├── style.css
-│   │   ├── studio.css
-│   │   └── account.css
 │   └── js/
-│       ├── app.js
-│       └── studio.js
 ├── migrations/
-│   ├── env.py
-│   ├── script.py.mako
 │   └── versions/
-│       └── 0001_accounts_and_generations.py
+│       ├── 0001_accounts_and_generations.py
+│       └── 0002_generation_jobs.py
 ├── tests/
 │   ├── test_app.py
 │   ├── test_api_v1.py
 │   ├── test_auth_history.py
+│   ├── test_fal_provider.py
 │   ├── test_image_service.py
+│   ├── test_jobs.py
 │   └── test_validators.py
 ├── pytest.ini
 ├── requirements.txt
 └── readme.md
 
-Runtime-only data is stored under instance/ and intentionally excluded from Git.
-
-services/
-  ai/
-    base.py
-    factory.py
-    mock_provider.py
-    remote_provider.py
-  prompt_service.py
-
-services/ai/fal_provider.py
+Runtime-only databases, temporary job inputs, job outputs, generated account assets, and secrets live under instance/ and are excluded from Git.

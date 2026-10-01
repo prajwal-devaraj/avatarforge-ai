@@ -138,9 +138,9 @@
                     <span class="button-loader" aria-hidden="true"></span>
                 </button>
                 {% if current_user %}
-                <p class="privacy-note">Your source upload is request-scoped. Generated results are saved to your private account history.</p>
+                <p class="privacy-note">Your source upload is temporarily staged for background processing, then deleted. Generated results are saved to your private account history.</p>
                 {% else %}
-                <p class="privacy-note">Your source upload is request-scoped. <a href="{{ url_for('auth.login', next=url_for('pages.studio')) }}">Sign in</a> to save generated results to a private history.</p>
+                <p class="privacy-note">Your source upload is temporarily staged for background processing, then deleted. <a href="{{ url_for('auth.login', next=url_for('pages.studio')) }}">Sign in</a> to save generated results to a private history.</p>
                 {% endif %}
             </form>
         </aside>
