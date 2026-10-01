@@ -48,6 +48,10 @@ def create_generation_job(*, file_storage, raw_style, raw_intensity, raw_engine,
         input_mime_type=file_storage.mimetype or "application/octet-stream",
     )
 
+    db = current_app.extensions["db_session"]
+    db.add(job)
+    db.flush()
+
     root = Path(current_app.config["JOB_STORAGE_DIR"]) / job.id
     root.mkdir(parents=True, exist_ok=True)
     suffix = Path(job.input_name).suffix.lower() or ".bin"
@@ -55,8 +59,6 @@ def create_generation_job(*, file_storage, raw_style, raw_intensity, raw_engine,
     file_storage.save(input_path)
     job.input_path = str(input_path)
 
-    db = current_app.extensions["db_session"]
-    db.add(job)
     db.commit()
     return job, token
 
@@ -136,3 +138,4 @@ def process_generation_job(job_id: str) -> None:
             Path(job.input_path).unlink(missing_ok=True)
         except OSError:
             current_app.logger.warning("Could not delete temporary job input for %s", job_id)
+
