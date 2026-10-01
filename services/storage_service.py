@@ -123,4 +123,3 @@ def storage_ready() -> tuple[bool, str]:
         return False, f"unsupported backend: {backend}"
     except Exception as exc:
         return False, str(exc)
-

@@ -9,11 +9,13 @@ from sqlalchemy import select
 from config import DevelopmentConfig, ProductionConfig
 from database import init_database
 from models import User
+from services.developer_service import authenticate_api_key
 from routes.account import account_bp
 from routes.api import api_bp
 from routes.api_v1 import api_v1_bp
 from routes.auth import auth_bp
 from routes.pages import pages_bp
+from routes.developer import developer_bp
 from utils.api_response import api_error
 from utils.security import csrf_token
 from utils.observability import configure_json_logging, mark_request_start, observe_response
@@ -44,6 +46,7 @@ def create_app(config_object=None) -> Flask:
     app.register_blueprint(account_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(api_v1_bp)
+    app.register_blueprint(developer_bp)
 
     @app.before_request
     def load_request_context():
@@ -51,6 +54,11 @@ def create_app(config_object=None) -> Flask:
         incoming = request.headers.get("X-Request-ID", "").strip()
         g.request_id = incoming[:128] if incoming else uuid.uuid4().hex
         g.user = None
+        g.api_key = None
+
+        authorization = request.headers.get("Authorization", "")
+        if authorization.lower().startswith("bearer "):
+            g.api_key = authenticate_api_key(authorization.split(None, 1)[1].strip())
 
         user_id = session.get("user_id")
         if user_id:
@@ -98,4 +106,3 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=app.config.get("DEBUG", False))
-

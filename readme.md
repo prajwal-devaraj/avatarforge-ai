@@ -334,3 +334,23 @@ Fresh development databases are created with the Step 12 retry fields. Existing 
 ```powershell
 python -m alembic upgrade head
 ```
+
+## Developer API
+
+Step 13 adds developer API keys, monthly generation quotas, and per-minute rate limiting.
+API keys are shown only once and are stored as SHA-256 hashes. Send a key with
+`Authorization: Bearer af_live_...` when calling generation endpoints. Signed-in
+users can create, list, revoke, and inspect usage for their keys through the
+`/api/v1/developer/*` endpoints.
+
+Local development uses an in-memory rate limiter. Distributed deployments should
+set `AVATARFORGE_RATE_LIMIT_BACKEND=redis` and provide `REDIS_URL`.
+
+## Vercel deployment target
+
+AvatarForge is being kept compatible with a final Vercel deployment. The Flask
+web application can run on Vercel's Python runtime, while durable production data
+must live outside the function filesystem. The final deployment step will use a
+managed Postgres database, Redis-compatible rate limiting/queue infrastructure,
+and private object storage rather than local SQLite or local generated-image
+folders.

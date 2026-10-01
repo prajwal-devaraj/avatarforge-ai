@@ -5,6 +5,8 @@ from urllib.parse import urljoin, urlparse
 
 from flask import g, redirect, request, session, url_for
 
+from utils.security import csrf_token
+
 
 def login_required(view):
     @wraps(view)
@@ -29,7 +31,9 @@ def sign_in_user(user_id: str) -> None:
     session.clear()
     session["user_id"] = user_id
     session.permanent = True
+    csrf_token()
 
 
 def sign_out_user() -> None:
     session.clear()
+

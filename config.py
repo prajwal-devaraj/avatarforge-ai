@@ -63,6 +63,9 @@ class Config:
     JOB_RETENTION_HOURS = int(os.environ.get("AVATARFORGE_JOB_RETENTION_HOURS", "24"))
     JSON_LOGS = env_bool("AVATARFORGE_JSON_LOGS", False)
     LOG_LEVEL = os.environ.get("AVATARFORGE_LOG_LEVEL", "INFO")
+    API_MONTHLY_GENERATION_QUOTA = int(os.environ.get("AVATARFORGE_API_MONTHLY_GENERATION_QUOTA", "100"))
+    API_RATE_LIMIT_PER_MINUTE = int(os.environ.get("AVATARFORGE_API_RATE_LIMIT_PER_MINUTE", "30"))
+    RATE_LIMIT_BACKEND = os.environ.get("AVATARFORGE_RATE_LIMIT_BACKEND", "memory")
 
 
 class DevelopmentConfig(Config):

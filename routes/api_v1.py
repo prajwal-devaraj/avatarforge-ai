@@ -15,8 +15,38 @@ from services.queue_service import enqueue_generation_job
 from services.image_service import STYLE_LABELS
 from services.storage_service import location_exists, read_bytes, storage_ready
 from utils.api_response import api_error, api_success
+from services.developer_service import check_rate_limit, increment_usage, quota_allows_generation, generation_quota_remaining
 
 api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
+
+
+def _apply_developer_limits(*, generation: bool = False):
+    api_key = g.get("api_key")
+    if api_key is None:
+        return None
+
+    allowed, retry_after = check_rate_limit(api_key.id)
+    if not allowed:
+        response, status = api_error(
+            "API rate limit exceeded.",
+            code="rate_limited",
+            status=429,
+            details={"retry_after_seconds": retry_after},
+        )
+        response.headers["Retry-After"] = str(retry_after)
+        return response, status
+
+    if generation and not quota_allows_generation(api_key.id):
+        quota, used, remaining = generation_quota_remaining(api_key.id)
+        return api_error(
+            "Monthly generation quota exceeded.",
+            code="quota_exceeded",
+            status=429,
+            details={"quota": quota, "used": used, "remaining": remaining},
+        )
+
+    increment_usage(api_key.id, generation=generation)
+    return None
 
 
 @api_v1_bp.get("/health")
@@ -73,6 +103,10 @@ def styles():
 def generate_v1():
     if "file" not in request.files:
         return api_error("No image was uploaded.", code="missing_file", status=400)
+
+    limit_error = _apply_developer_limits(generation=True)
+    if limit_error:
+        return limit_error
 
     started_at = time.perf_counter()
 
@@ -142,6 +176,10 @@ def generate_v1():
 def create_job_v1():
     if "file" not in request.files:
         return api_error("No image was uploaded.", code="missing_file", status=400)
+
+    limit_error = _apply_developer_limits(generation=True)
+    if limit_error:
+        return limit_error
 
     try:
         job, access_token = create_generation_job(
