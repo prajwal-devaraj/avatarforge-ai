@@ -34,7 +34,8 @@ class Config:
     AI_PROVIDER = os.environ.get("AVATARFORGE_AI_PROVIDER", "remote")
     AI_ENDPOINT = os.environ.get("AVATARFORGE_AI_ENDPOINT", "")
     AI_API_KEY = os.environ.get("AVATARFORGE_AI_API_KEY", "")
-    AI_TIMEOUT = int(os.environ.get("AVATARFORGE_AI_TIMEOUT", "60"))
+    AI_TIMEOUT = int(os.environ.get("AVATARFORGE_AI_TIMEOUT", "120"))
+    FAL_KEY = os.environ.get("FAL_KEY", "")
 
 
 class DevelopmentConfig(Config):

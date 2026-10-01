@@ -186,3 +186,25 @@ The next milestones are cloud object storage, asynchronous generation workers, r
 
 ## Generative AI mode
 Step 8 adds a provider-neutral AI generation layer. Set `AVATARFORGE_AI_ENDPOINT` and optionally `AVATARFORGE_AI_API_KEY` to connect a remote image-to-image service that accepts multipart fields `image`, `prompt`, `style`, and `intensity`, and returns JSON containing `image_base64`. Classic OpenCV mode remains available as a local fallback.
+
+
+## Step 9: Optional fal.ai production provider
+
+AvatarForge now includes a server-side `fal` provider for real image-to-image generation with `fal-ai/flux-pro/kontext`. The integration is optional: the project continues to run in Classic mode or with the built-in mock AI provider without any external account.
+
+For local development without a key:
+
+```powershell
+$env:AVATARFORGE_AI_PROVIDER="mock"
+python app.py
+```
+
+When you later create a fal.ai key, keep it outside source control and switch providers:
+
+```powershell
+$env:AVATARFORGE_AI_PROVIDER="fal"
+$env:FAL_KEY="your-key-here"
+python app.py
+```
+
+Never place a real API key in `.env.example`, Git commits, frontend JavaScript, screenshots, or issue reports. The browser continues to call AvatarForge's own backend; the provider credential remains server-side.

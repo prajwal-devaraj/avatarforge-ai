@@ -63,3 +63,5 @@ services/
     mock_provider.py
     remote_provider.py
   prompt_service.py
+
+services/ai/fal_provider.py
