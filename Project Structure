@@ -1,18 +1,25 @@
 avatarforge-ai/
 ├── app.py
 ├── config.py
+├── pytest.ini
+├── requirements.txt
 ├── routes/
 │   ├── __init__.py
+│   ├── pages.py
 │   ├── api.py
-│   └── pages.py
+│   └── api_v1.py
 ├── services/
 │   ├── __init__.py
 │   ├── generation_service.py
 │   └── image_service.py
 ├── utils/
 │   ├── __init__.py
+│   ├── api_response.py
 │   ├── image_utils.py
 │   └── validators.py
+├── templates/
+│   ├── index.html
+│   └── studio.html
 ├── static/
 │   ├── css/
 │   │   ├── style.css
@@ -20,14 +27,9 @@ avatarforge-ai/
 │   └── js/
 │       ├── app.js
 │       └── studio.js
-├── templates/
-│   ├── index.html
-│   └── studio.html
 ├── tests/
 │   ├── test_app.py
+│   ├── test_api_v1.py
 │   ├── test_image_service.py
 │   └── test_validators.py
-├── .gitignore
-├── pytest.ini
-├── readme.md
-└── requirements.txt
+└── readme.md

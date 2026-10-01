@@ -18,7 +18,7 @@ def test_studio_loads():
     assert response.status_code == 200
 
 
-def test_generate_requires_file():
+def test_legacy_generate_requires_file():
     client = create_app(TestConfig).test_client()
     response = client.post("/generate", data={})
     assert response.status_code == 400

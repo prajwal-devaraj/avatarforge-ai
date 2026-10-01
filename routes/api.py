@@ -1,7 +1,12 @@
+"""Legacy compatibility routes.
+
+The browser app now uses /api/v1. This route remains temporarily available so
+older clients do not break while the API migrates.
+"""
+
 from flask import Blueprint, current_app, jsonify, request, send_file
 
 from services.generation_service import generate_avatar
-
 
 api_bp = Blueprint("api", __name__)
 
@@ -17,7 +22,6 @@ def generate():
             request.form.get("style"),
             request.form.get("intensity"),
         )
-
         return send_file(
             result.image_stream,
             mimetype="image/jpeg",
@@ -26,6 +30,8 @@ def generate():
                 "X-AvatarForge-Style": result.style,
                 "X-AvatarForge-Style-Label": result.style_label,
                 "X-AvatarForge-Intensity": str(result.intensity),
+                "Deprecation": "true",
+                "Link": '</api/v1/generate>; rel="successor-version"',
             },
         )
     except ValueError as exc:

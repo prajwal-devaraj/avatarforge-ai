@@ -179,21 +179,27 @@ async function generateAvatar() {
 
     try {
         const startedAt = performance.now();
-        const response = await fetch('/generate', { method: 'POST', body });
-        if (!response.ok) {
-            const payload = await response.json().catch(() => ({}));
-            throw new Error(payload.error || 'Generation failed. Please try again.');
+        const response = await fetch('/api/v1/generate', { method: 'POST', body });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.success) {
+            throw new Error(payload?.error?.message || 'Generation failed. Please try again.');
         }
 
-        const blob = await response.blob();
         const elapsed = Math.max(0.1, (performance.now() - startedAt) / 1000).toFixed(1);
+        const image = payload.data.image;
+        const binary = atob(image.base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+        const blob = new Blob([bytes], { type: image.mime_type });
 
         if (generatedObjectUrl) URL.revokeObjectURL(generatedObjectUrl);
         generatedObjectUrl = URL.createObjectURL(blob);
         generatedPreview.src = generatedObjectUrl;
         downloadButton.href = generatedObjectUrl;
-        downloadButton.download = `avatarforge-${style.value}.jpg`;
-        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s`;
+        downloadButton.download = image.download_name;
+        const serverMs = payload.meta?.processing_ms;
+        const serverLabel = Number.isFinite(serverMs) ? ` · ${serverMs}ms server` : '';
+        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s${serverLabel}`;
         resultActions.hidden = false;
         setStatus('Complete', 'complete');
         previewTitle.textContent = `${style.label} complete`;

@@ -4,7 +4,7 @@
 
 AvatarForge AI is an evolving digital identity platform for transforming personal photos into expressive avatars. The current release combines a company-style product experience with a multi-style computer-vision rendering engine and adjustable style intensity.
 
-## Current Release — Step 4
+## Current Release — Step 6
 
 - Premium, responsive product landing page
 - Dedicated `/studio` avatar-generation workspace
@@ -75,12 +75,12 @@ avatarforge-ai/
 2. Company-level landing page — complete
 3. Dedicated avatar generation workspace — complete
 4. Multiple image styles and controls — complete
-5. FastAPI service architecture
-6. PostgreSQL and authentication
-7. Generative AI avatar models
-8. Generation history and cloud storage
-9. Background workers and scalable inference
-10. Developer API, observability, billing, and production deployment
+5. Modular backend architecture — complete
+6. Versioned API foundation — complete
+7. PostgreSQL and authentication
+8. Generative AI avatar models
+9. Generation history and cloud storage
+10. Background workers, developer API, observability, billing, and production deployment
 
 ## Product direction
 
@@ -106,3 +106,30 @@ Run the test suite with:
 ```bash
 pytest -q
 ```
+
+
+## API v1
+
+Step 6 introduces a versioned JSON API while preserving the legacy `/generate` route during migration.
+
+- `GET /api/v1/health` — service health and API version
+- `GET /api/v1/styles` — registered visual styles
+- `POST /api/v1/generate` — multipart avatar generation with a standardized JSON response
+- Every v1 response uses `success`, `data`, `error`, and `meta` fields.
+- Every request receives an `X-Request-ID`; callers may also supply one for trace correlation.
+- Generation responses include processing time metadata and a base64-encoded JPEG payload.
+
+Example success envelope:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "error": null,
+  "meta": {
+    "request_id": "..."
+  }
+}
+```
+
+The browser Studio now consumes `/api/v1/generate`. The original `/generate` endpoint remains temporarily available for backward compatibility and is marked deprecated in its response headers.

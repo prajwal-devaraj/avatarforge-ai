@@ -1,10 +1,13 @@
 import os
+import uuid
 
-from flask import Flask, jsonify
+from flask import Flask, request
 
 from config import DevelopmentConfig, ProductionConfig
 from routes.api import api_bp
+from routes.api_v1 import api_v1_bp
 from routes.pages import pages_bp
+from utils.api_response import api_error
 
 
 def create_app(config_object=None) -> Flask:
@@ -18,10 +21,38 @@ def create_app(config_object=None) -> Flask:
     app.config.from_object(config_object)
     app.register_blueprint(pages_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(api_v1_bp)
+
+    @app.before_request
+    def assign_request_id():
+        from flask import g
+
+        incoming = request.headers.get("X-Request-ID", "").strip()
+        g.request_id = incoming[:128] if incoming else uuid.uuid4().hex
+
+    @app.after_request
+    def attach_request_id(response):
+        from flask import g
+
+        if getattr(g, "request_id", None):
+            response.headers["X-Request-ID"] = g.request_id
+        return response
 
     @app.errorhandler(413)
     def file_too_large(_error):
-        return jsonify({"error": "Image is too large. Maximum upload size is 10 MB."}), 413
+        if request.path.startswith("/api/v1/"):
+            return api_error(
+                "Image is too large. Maximum upload size is 10 MB.",
+                code="payload_too_large",
+                status=413,
+            )
+        return {"error": "Image is too large. Maximum upload size is 10 MB."}, 413
+
+    @app.errorhandler(404)
+    def not_found(_error):
+        if request.path.startswith("/api/v1/"):
+            return api_error("API endpoint not found.", code="not_found", status=404)
+        return _error
 
     return app
 
