@@ -49,12 +49,21 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/studio", methods=["GET"])
+def studio():
+    return render_template("studio.html")
+
+
 @app.route("/generate", methods=["POST"])
 def generate():
     if "file" not in request.files:
         return jsonify({"error": "No image was uploaded."}), 400
 
     file = request.files["file"]
+    style = request.form.get("style", "cartoon").strip().lower()
+    if style != "cartoon":
+        return jsonify({"error": "That style is not available in this release yet."}), 400
+
     if not file or file.filename == "":
         return jsonify({"error": "Please choose an image first."}), 400
 

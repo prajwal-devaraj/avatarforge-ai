@@ -1,11 +1,14 @@
 avatarforge-ai/
 ├── app.py
 ├── requirements.txt
-├── static/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       └── app.js
+├── readme.md
 ├── templates/
-│   └── index.html
-└── readme.md
+│   ├── index.html
+│   └── studio.html
+└── static/
+    ├── css/
+    │   ├── style.css
+    │   └── studio.css
+    └── js/
+        ├── app.js
+        └── studio.js

@@ -33,7 +33,7 @@
                 <a href="#privacy">Privacy</a>
             </nav>
 
-            <a class="button button-small button-ghost desktop-cta" href="#create">Create avatar</a>
+            <a class="button button-small button-ghost desktop-cta" href="{{ url_for('studio') }}">Create avatar</a>
         </div>
     </header>
 
@@ -44,7 +44,7 @@
                 <h1>Your face.<br><span>Your style.</span><br>Your digital identity.</h1>
                 <p>Transform a photo into a distinctive avatar with a fast, privacy-conscious creative experience. AvatarForge AI is being built for professional, social, gaming, and artistic identities.</p>
                 <div class="hero-actions">
-                    <a class="button button-primary" href="#create">Create your avatar <span>→</span></a>
+                    <a class="button button-primary" href="{{ url_for('studio') }}">Create your avatar <span>→</span></a>
                     <a class="text-link" href="#how-it-works">See how it works <span>↘</span></a>
                 </div>
                 <div class="hero-trust">
@@ -228,7 +228,7 @@
         <section class="section shell final-cta reveal">
             <span class="kicker">AvatarForge AI</span>
             <h2>Not another filter.<br><span>A digital identity platform in the making.</span></h2>
-            <a class="button button-primary" href="#create">Create your avatar <span>→</span></a>
+            <a class="button button-primary" href="{{ url_for('studio') }}">Create your avatar <span>→</span></a>
         </section>
     </main>
 
@@ -238,7 +238,7 @@
                 <a class="brand footer-brand" href="#top"><span class="brand-mark">AF</span><span class="brand-name">AvatarForge <strong>AI</strong></span></a>
                 <p>Your face. Your style. Your digital identity.</p>
             </div>
-            <div class="footer-links"><span>Product</span><a href="#styles">Styles</a><a href="#create">Create</a><a href="#how-it-works">How it works</a></div>
+            <div class="footer-links"><span>Product</span><a href="#styles">Styles</a><a href="{{ url_for('studio') }}">Create</a><a href="#how-it-works">How it works</a></div>
             <div class="footer-links"><span>Trust</span><a href="#privacy">Privacy</a><a href="#privacy">Data approach</a></div>
             <div class="footer-note"><span>Built as an evolving AI product.</span><small>© <span id="year"></span> AvatarForge AI</small></div>
         </div>

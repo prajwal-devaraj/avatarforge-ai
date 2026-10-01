@@ -79,3 +79,9 @@ AvatarForge AI is being designed as more than a filter utility. The long-term pl
 ---
 
 Built by **Prajwal Devaraj**.
+
+## Avatar Studio Workspace
+
+The `/studio` route provides a dedicated creation workspace with drag-and-drop upload, source preview, style selection, generation state, side-by-side original/result comparison, regeneration, and direct download actions.
+
+Current production engine: **Signature Cartoon**, powered by OpenCV image processing. Additional generative styles remain intentionally marked as coming soon until real model-backed implementations are added.

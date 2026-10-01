@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your AvatarForge avatar in a dedicated generation workspace.">
+    <meta name="theme-color" content="#07070b">
+    <title>Avatar Studio — AvatarForge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/studio.css') }}">
+</head>
+<body class="studio-page">
+    <header class="studio-header">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="Back to AvatarForge AI home">
+            <span class="brand-mark" aria-hidden="true">AF</span>
+            <span class="brand-name">AvatarForge <strong>AI</strong></span>
+        </a>
+        <div class="studio-header-center">
+            <span class="workspace-dot"></span>
+            <span>Avatar Studio</span>
+        </div>
+        <a class="studio-home-link" href="{{ url_for('index') }}">Back to home</a>
+    </header>
+
+    <main class="studio-shell">
+        <aside class="studio-sidebar studio-panel">
+            <div class="panel-heading">
+                <span class="panel-kicker">Create</span>
+                <h1>Forge your avatar</h1>
+                <p>Upload a portrait, choose a style, and generate a polished avatar.</p>
+            </div>
+
+            <form id="studio-form" enctype="multipart/form-data">
+                <section class="control-section">
+                    <div class="control-title-row">
+                        <label>1. Source image</label>
+                        <span>JPG · PNG · WEBP</span>
+                    </div>
+                    <label class="studio-dropzone" id="studio-dropzone" for="studio-file-input" tabindex="0">
+                        <input id="studio-file-input" name="file" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                        <span class="upload-icon" aria-hidden="true">+</span>
+                        <strong>Drop your photo here</strong>
+                        <small>or click to browse · max 10 MB</small>
+                    </label>
+                    <div class="selected-file-row" id="studio-selected-file" hidden>
+                        <span class="file-status-dot"></span>
+                        <span id="studio-file-name"></span>
+                        <button type="button" id="remove-file" aria-label="Remove selected image">×</button>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <div class="control-title-row">
+                        <label>2. Style</label>
+                        <span>Engine v1</span>
+                    </div>
+                    <div class="style-picker" role="radiogroup" aria-label="Avatar style">
+                        <label class="style-option active">
+                            <input type="radio" name="style" value="cartoon" checked>
+                            <span class="style-swatch swatch-cartoon"></span>
+                            <span><strong>Signature Cartoon</strong><small>Available now</small></span>
+                        </label>
+                        <button class="style-option locked" type="button" disabled>
+                            <span class="style-swatch swatch-anime"></span>
+                            <span><strong>Anime</strong><small>Coming soon</small></span>
+                        </button>
+                        <button class="style-option locked" type="button" disabled>
+                            <span class="style-swatch swatch-pro"></span>
+                            <span><strong>Professional</strong><small>Coming soon</small></span>
+                        </button>
+                        <button class="style-option locked" type="button" disabled>
+                            <span class="style-swatch swatch-cyber"></span>
+                            <span><strong>Cyberpunk</strong><small>Coming soon</small></span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="control-section compact-controls">
+                    <div class="control-title-row">
+                        <label>3. Output</label>
+                        <span>Optimized</span>
+                    </div>
+                    <div class="output-row">
+                        <div><strong>Format</strong><span>JPEG</span></div>
+                        <div><strong>Quality</strong><span>High</span></div>
+                    </div>
+                </section>
+
+                <p class="studio-message" id="studio-message" role="status"></p>
+                <button class="studio-generate-button" id="studio-generate-button" type="submit" disabled>
+                    <span class="button-label">Generate avatar</span>
+                    <span class="button-loader" aria-hidden="true"></span>
+                </button>
+                <p class="privacy-note">Your upload is processed for this request and is not added to a permanent gallery in this release.</p>
+            </form>
+        </aside>
+
+        <section class="studio-canvas studio-panel">
+            <div class="canvas-toolbar">
+                <div>
+                    <span class="panel-kicker">Preview</span>
+                    <strong id="preview-title">Workspace</strong>
+                </div>
+                <div class="canvas-status" id="canvas-status"><span></span> Ready</div>
+            </div>
+
+            <div class="canvas-stage" id="canvas-stage">
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-visual" aria-hidden="true">
+                        <span class="empty-ring ring-a"></span>
+                        <span class="empty-ring ring-b"></span>
+                        <span class="empty-avatar">AF</span>
+                    </div>
+                    <h2>Your avatar starts here.</h2>
+                    <p>Upload a portrait from the control panel. Your original and generated result will appear side by side.</p>
+                </div>
+
+                <div class="comparison-view" id="comparison-view" hidden>
+                    <article class="preview-card">
+                        <div class="preview-card-header">
+                            <span>Original</span>
+                            <span class="preview-badge neutral">Source</span>
+                        </div>
+                        <div class="preview-image-wrap">
+                            <img id="studio-original-preview" alt="Original uploaded portrait">
+                        </div>
+                    </article>
+                    <article class="preview-card result-card">
+                        <div class="preview-card-header">
+                            <span>Forged</span>
+                            <span class="preview-badge">Signature Cartoon</span>
+                        </div>
+                        <div class="preview-image-wrap result-wrap">
+                            <div class="generation-overlay" id="generation-overlay" hidden>
+                                <div class="forge-spinner"></div>
+                                <strong>Forging your avatar</strong>
+                                <span>Processing image details…</span>
+                            </div>
+                            <img id="studio-generated-preview" alt="Generated AvatarForge portrait">
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="result-actions" id="result-actions" hidden>
+                <div class="result-meta">
+                    <span class="success-dot"></span>
+                    <div><strong>Generation complete</strong><small id="generation-meta">Signature Cartoon · High quality</small></div>
+                </div>
+                <div class="result-buttons">
+                    <button type="button" class="secondary-action" id="regenerate-button">Regenerate</button>
+                    <a class="primary-action" id="studio-download-button" download="avatarforge-cartoon.jpg">Download avatar</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/studio.js') }}"></script>
+</body>
+</html>
