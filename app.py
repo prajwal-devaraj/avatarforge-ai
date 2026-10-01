@@ -16,6 +16,7 @@ from routes.auth import auth_bp
 from routes.pages import pages_bp
 from utils.api_response import api_error
 from utils.security import csrf_token
+from utils.observability import configure_json_logging, mark_request_start, observe_response
 
 
 def create_app(config_object=None) -> Flask:
@@ -35,6 +36,7 @@ def create_app(config_object=None) -> Flask:
         raise RuntimeError("AVATARFORGE_SECRET_KEY must be set in production.")
 
     init_database(app)
+    configure_json_logging(app)
     Path(app.config["JOB_STORAGE_DIR"]).mkdir(parents=True, exist_ok=True)
 
     app.register_blueprint(pages_bp)
@@ -45,6 +47,7 @@ def create_app(config_object=None) -> Flask:
 
     @app.before_request
     def load_request_context():
+        mark_request_start()
         incoming = request.headers.get("X-Request-ID", "").strip()
         g.request_id = incoming[:128] if incoming else uuid.uuid4().hex
         g.user = None
@@ -62,6 +65,7 @@ def create_app(config_object=None) -> Flask:
 
     @app.after_request
     def attach_request_id(response):
+        observe_response(response)
         if getattr(g, "request_id", None):
             response.headers["X-Request-ID"] = g.request_id
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -94,3 +98,4 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=app.config.get("DEBUG", False))
+
