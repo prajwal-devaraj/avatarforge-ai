@@ -507,3 +507,5 @@
 .studio-account-button { min-height:34px; padding:0 12px; border-radius:9px; display:inline-flex; align-items:center; color:#fff; font-size:10px; font-weight:700; background:rgba(111,82,255,.16); border:1px solid rgba(126,101,255,.22); }
 .privacy-note a { color:#9d8aff; text-decoration:underline; text-underline-offset:2px; }
 @media(max-width:680px){.studio-account-button{display:none}.studio-signout{padding-right:0}}
+
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.mode-toggle label{border:1px solid rgba(255,255,255,.12);padding:10px 12px;border-radius:12px;cursor:pointer}.prompt-field{display:block;margin:8px 0}.control-section textarea{width:100%;box-sizing:border-box;min-height:82px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;padding:12px;resize:vertical}

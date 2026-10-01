@@ -11,6 +11,7 @@ class TestConfig(Config):
     DATABASE_URL = "sqlite:///:memory:"
     GENERATED_STORAGE_DIR = "/tmp/avatarforge-test-generated"
     SECRET_KEY = "test-secret"
+    AI_PROVIDER = "mock"
 
 
 def make_image_file():
@@ -77,3 +78,17 @@ def test_request_id_can_be_provided_by_client():
     payload = response.get_json()
     assert payload["meta"]["request_id"] == "client-request-123"
     assert response.headers["X-Request-ID"] == "client-request-123"
+
+
+def test_generate_ai_mode_with_mock_provider():
+    client = create_app(TestConfig).test_client()
+    response = client.post(
+        "/api/v1/generate",
+        data={"file": (make_image_file(), "avatar.png"), "style": "portrait", "intensity": "70", "engine": "ai", "prompt": "studio founder portrait"},
+        content_type="multipart/form-data",
+    )
+    payload=response.get_json()
+    assert response.status_code==200
+    assert payload["data"]["generation"]["engine"]=="ai"
+    assert payload["data"]["generation"]["provider"]=="mock"
+    assert "founder" in payload["data"]["generation"]["prompt"]

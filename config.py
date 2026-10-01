@@ -31,6 +31,10 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     PERMANENT_SESSION_LIFETIME = 60 * 60 * 24 * 14
     AUTO_CREATE_DB = True
+    AI_PROVIDER = os.environ.get("AVATARFORGE_AI_PROVIDER", "remote")
+    AI_ENDPOINT = os.environ.get("AVATARFORGE_AI_ENDPOINT", "")
+    AI_API_KEY = os.environ.get("AVATARFORGE_AI_API_KEY", "")
+    AI_TIMEOUT = int(os.environ.get("AVATARFORGE_AI_TIMEOUT", "60"))
 
 
 class DevelopmentConfig(Config):

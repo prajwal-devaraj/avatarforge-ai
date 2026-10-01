@@ -47,6 +47,8 @@ def generate_v1():
             request.files.get("file"),
             request.form.get("style"),
             request.form.get("intensity"),
+            request.form.get("engine"),
+            request.form.get("prompt"),
         )
         image_bytes = result.image_stream.getvalue()
         image_base64 = base64.b64encode(image_bytes).decode("ascii")
@@ -65,6 +67,9 @@ def generate_v1():
             "style_label": result.style_label,
             "intensity": result.intensity,
             "saved": saved_generation is not None,
+            "engine": result.engine,
+            "provider": result.provider,
+            "prompt": result.prompt,
         }
         if saved_generation is not None:
             generation_payload.update(

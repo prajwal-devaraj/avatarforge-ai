@@ -100,8 +100,19 @@
                 </section>
 
                 <section class="control-section">
+                    <div class="control-title-row"><label>3. Generation mode</label><span>Classic or AI</span></div>
+                    <div class="mode-toggle">
+                        <label><input type="radio" name="engine" value="classic" checked> Classic</label>
+                        <label><input type="radio" name="engine" value="ai"> AI</label>
+                    </div>
+                    <label class="prompt-field" for="ai-prompt">Optional AI prompt</label>
+                    <textarea id="ai-prompt" name="prompt" rows="3" maxlength="500" placeholder="e.g. cinematic founder portrait, warm studio lighting"></textarea>
+                    <small>AI mode requires a configured provider endpoint. Classic mode always works locally.</small>
+                </section>
+
+                <section class="control-section">
                     <div class="control-title-row">
-                        <label for="style-intensity">3. Style intensity</label>
+                        <label for="style-intensity">4. Style intensity</label>
                         <span id="intensity-value">70%</span>
                     </div>
                     <div class="range-control">
@@ -112,7 +123,7 @@
 
                 <section class="control-section compact-controls">
                     <div class="control-title-row">
-                        <label>4. Output</label>
+                        <label>5. Output</label>
                         <span>Optimized</span>
                     </div>
                     <div class="output-row">

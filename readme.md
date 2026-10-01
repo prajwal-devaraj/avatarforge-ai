@@ -182,3 +182,7 @@ AvatarForge is being built around explicit ownership and controlled retention. I
 ## Roadmap
 
 The next milestones are cloud object storage, asynchronous generation workers, real generative-AI inference, observability, and production deployment infrastructure.
+
+
+## Generative AI mode
+Step 8 adds a provider-neutral AI generation layer. Set `AVATARFORGE_AI_ENDPOINT` and optionally `AVATARFORGE_AI_API_KEY` to connect a remote image-to-image service that accepts multipart fields `image`, `prompt`, `style`, and `intensity`, and returns JSON containing `image_base64`. Classic OpenCV mode remains available as a local fallback.

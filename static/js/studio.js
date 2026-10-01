@@ -21,6 +21,8 @@ const intensityValue = document.getElementById('intensity-value');
 const resultStyleBadge = document.getElementById('result-style-badge');
 const generationMeta = document.getElementById('generation-meta');
 const styleOptions = [...document.querySelectorAll('.style-option')];
+const engineInputs = [...document.querySelectorAll('input[name="engine"]')];
+const promptInput = document.getElementById('ai-prompt');
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -176,6 +178,9 @@ async function generateAvatar() {
     body.append('file', file);
     body.append('style', style.value);
     body.append('intensity', intensity);
+    const engine = document.querySelector('input[name="engine"]:checked')?.value || 'classic';
+    body.append('engine', engine);
+    body.append('prompt', promptInput?.value || '');
 
     try {
         const startedAt = performance.now();
@@ -200,7 +205,8 @@ async function generateAvatar() {
         const serverMs = payload.meta?.processing_ms;
         const serverLabel = Number.isFinite(serverMs) ? ` · ${serverMs}ms server` : '';
         const savedLabel = payload.data.generation?.saved ? ' · Saved to history' : '';
-        generationMeta.textContent = `${style.label} · ${intensity}% intensity · ${elapsed}s${serverLabel}${savedLabel}`;
+        const engineLabel = payload.data.generation?.engine === 'ai' ? `AI/${payload.data.generation?.provider || 'provider'}` : 'Classic';
+        generationMeta.textContent = `${style.label} · ${engineLabel} · ${intensity}% intensity · ${elapsed}s${serverLabel}${savedLabel}`;
         resultActions.hidden = false;
         setStatus('Complete', 'complete');
         previewTitle.textContent = `${style.label} complete`;

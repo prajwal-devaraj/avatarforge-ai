@@ -55,3 +55,11 @@ avatarforge-ai/
 └── readme.md
 
 Runtime-only data is stored under instance/ and intentionally excluded from Git.
+
+services/
+  ai/
+    base.py
+    factory.py
+    mock_provider.py
+    remote_provider.py
+  prompt_service.py
